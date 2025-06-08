@@ -82,17 +82,16 @@ def index():
 
 # 保存 socket.id 与用户名的映射
 user_sid_map = {}
-
 @socketio.on('connect')
 def handle_connect():
     print(f"Socket 连接建立: {request.sid}")
     messages = Message.query.order_by(Message.timestamp.desc()).limit(50).all()
     messages = reversed(messages)  # 先倒序再恢复正序
-history = [{
-    'username': m.username,
-    'message': m.message,
-    'timestamp': m.timestamp.isoformat()  # ✅ 用 m.timestamp
-} for m in messages]
+    history = [{
+        'username': m.username,
+        'message': m.message,
+        'timestamp': m.timestamp.isoformat()
+    } for m in messages]
     emit('chat_history', history)
 
 @socketio.on('load_more_history')
