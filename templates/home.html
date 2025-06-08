@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fink的小窝 - 聊天小窗</title>
-    <meta name="description" content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"/>
+    <meta
+      name="description"
+      content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"
+    />
     <!-- 设置网页图标（favicon） -->
     <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
     <!-- 可选：社交分享图标（Open Graph） -->
@@ -130,7 +133,12 @@
   </head>
   <body>
     <div class="container">
-      <h1>欢迎，<span id="username" style="color:#ff69b4; font-weight:bold;">{{ username }}</span> 来到Fink的小窝</h1>
+      <h1>
+        欢迎，<span id="username" style="color: #ff69b4; font-weight: bold"
+          >{{ username }}</span
+        >
+        来到Fink的小窝
+      </h1>
       <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
       <div id="chat-box"></div>
       <div id="chat-input">
@@ -190,6 +198,9 @@
       }
 
       function logout() {
+        localStorage.removeItem("savedUsername");
+        localStorage.removeItem("savedPassword");
+        localStorage.setItem("autoLogin", "no");
         window.location.href = "/logout";
       }
 
