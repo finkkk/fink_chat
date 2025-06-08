@@ -153,7 +153,7 @@
 
       function appendMessage(data, prepend = false) {
         const msgDiv = document.createElement("div");
-        msgDiv.textContent = `${data.username}: ${data.message}`;
+        msgDiv.innerHTML = `<span class="username" style="color:#3b82f6; font-weight:bold;">${data.username}</span>: ${data.message}`;
         if (prepend) {
           chatBox.insertBefore(msgDiv, chatBox.firstChild);
         } else {
