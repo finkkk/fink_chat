@@ -12,7 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 CORS(app, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins="*", manage_session=True, async_mode='threading')
+# 使用 eventlet，开发和部署都一样
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', manage_session=True)
 db = SQLAlchemy(app)
 
 # ====== 数据模型 ======
@@ -123,17 +124,5 @@ def handle_send(data):
 
 # ====== 启动应用 ======
 if __name__ == '__main__':
-    import os
-
-    # 判断是否为开发模式（若不做处理默认为 production）
-    is_dev = os.environ.get("FLASK_ENV") == "development"
-
-    socketio.run(
-        app,
-        host='0.0.0.0',
-        port=5000,
-        debug=is_dev,
-        use_reloader=is_dev,
-        allow_unsafe_werkzeug=is_dev
-    )
+    socketio.run(app, host='0.0.0.0', port=5000)
 
