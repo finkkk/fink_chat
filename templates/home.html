@@ -167,7 +167,7 @@
         let timeStr = "";
         if (data.timestamp) {
           try {
-            const local = new Date(data.timestamp);
+            const local = new Date(data.timestamp + "Z");
             timeStr = local.toLocaleString();  // 自动按用户本地格式显示
           } catch {}
         }
