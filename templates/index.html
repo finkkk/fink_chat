@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>注册 & 登录示例</title>
+  <style>
+    body {
+      background: #f0f2f5;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      width: 320px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 24px;
+      color: #333;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #555;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border: 1.8px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      width: 48%;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 0;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #2563eb;
+    }
+    #message {
+      margin-top: 18px;
+      font-size: 15px;
+      min-height: 22px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>用户注册与登录</h2>
+
+    <label for="username">用户名</label>
+    <input type="text" id="username" placeholder="请输入用户名" />
+
+    <label for="password">密码</label>
+    <input type="password" id="password" placeholder="请输入密码" />
+
+    <div class="btn-group">
+      <button type="button" onclick="register()">注册</button>
+      <button type="button" onclick="login()">登录</button>
+    </div>
+
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const messageEl = document.getElementById('message');
+
+    function register() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        messageEl.style.color = 'red';
+        messageEl.textContent = '用户名和密码不能为空';
+        return;
+      }
+
+      fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = data.error;
+        } else {
+          messageEl.style.color = 'green';
+          messageEl.textContent = data.message;
+        }
+      })
+      .catch(err => {
+        messageEl.style.color = 'red';
+        messageEl.textContent = '请求失败，请检查服务器';
+        console.error(err);
+      });
+    }
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        messageEl.style.color = 'red';
+        messageEl.textContent = '用户名和密码不能为空';
+        return;
+      }
+
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          messageEl.style.color = 'red';
+          messageEl.textContent = data.error;
+        } else {
+          messageEl.style.color = 'green';
+          messageEl.textContent = data.message;
+
+          setTimeout(() => {
+            window.location.href = '/home'; // 后端 /home 渲染 home.html
+          }, 800);
+        }
+      })
+      .catch(err => {
+        messageEl.style.color = 'red';
+        messageEl.textContent = '请求失败，请检查服务器';
+        console.error(err);
+      });
+    }
+  </script>
+</body>
+</html>

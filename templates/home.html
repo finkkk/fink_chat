@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>用户主页 - 简单聊天</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      width: 400px;
+      max-width: 90%;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #333;
+      text-align: center;
+    }
+
+    #chat-box {
+      flex: 1;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      background: #fafafa;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #chat-input {
+      display: flex;
+    }
+
+    #chat-input input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px 0 0 6px;
+      outline: none;
+    }
+
+    #chat-input button {
+      padding: 10px 16px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #chat-input button:hover {
+      background: #2563eb;
+    }
+
+    #logout {
+      margin-top: 10px;
+      color: #555;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    #load-more {
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #eee;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #load-more:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>欢迎，<span id="username">{{ username }}</span></h1>
+    <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
+    <div id="chat-box"></div>
+    <div id="chat-input">
+      <input type="text" id="message" placeholder="输入消息..." />
+      <button onclick="sendMessage()">发送</button>
+    </div>
+    <div id="logout" onclick="logout()">退出登录</div>
+  </div>
+
+  <script>
+    const username = "{{ username }}";
+    const socket = io({ withCredentials: true });
+
+    const chatBox = document.getElementById('chat-box');
+    const messageInput = document.getElementById('message');
+    const loadMoreBtn = document.getElementById('load-more');
+
+    let messageOffset = 0; // 初始偏移
+    const limitPerLoad = 10; // 每次加载条数
+
+    function appendMessage(data, prepend = false) {
+      const msgDiv = document.createElement('div');
+      msgDiv.textContent = `${data.username}: ${data.message}`;
+      if (prepend) {
+        chatBox.insertBefore(msgDiv, chatBox.firstChild);
+      } else {
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    socket.on('connect', () => {
+      console.log('已连接到服务器');
+      socket.emit('bind_username', { username });
+    });
+
+    socket.on('chat_history', (messages) => {
+      if (!messages || messages.length === 0) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = '没有更多消息';
+        return;
+      }
+
+      // 显示顺序从旧到新
+      messages.reverse().forEach(msg => appendMessage(msg, true));
+      messageOffset += messages.length;
+    });
+
+    socket.on('receive_message', (data) => {
+      appendMessage(data);
+    });
+
+    function sendMessage() {
+      const msg = messageInput.value.trim();
+      if (!msg) return;
+      socket.emit('send_message', { message: msg });
+      messageInput.value = '';
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    function loadMore() {
+      socket.emit('load_more_history', { offset: messageOffset, limit: limitPerLoad });
+    }
+
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+
+</html>

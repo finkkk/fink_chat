@@ -1,0 +1,16 @@
+# 虚拟环境文件夹
+venv/
+
+# Python 编译缓存
+__pycache__/
+*.pyc
+
+# 忽略 SQLite 数据库文件（在 instance 文件夹下）
+instance/
+*.db
+
+# VSCode 设置文件（可选）
+.vscode/
+
+# 隐私配置
+.env
