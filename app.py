@@ -88,7 +88,11 @@ def handle_connect():
     print(f"Socket 连接建立: {request.sid}")
     messages = Message.query.order_by(Message.timestamp.desc()).limit(50).all()
     messages = reversed(messages)  # 先倒序再恢复正序
-    history = [{'username': m.username, 'message': m.message} for m in messages]
+    history = [{
+    'username': m.username,
+    'message': m.message,
+    'timestamp': m.timestamp.strftime('%H:%M')
+} for m in messages]
     emit('chat_history', history)
 
 @socketio.on('load_more_history')
@@ -123,7 +127,11 @@ def handle_send(data):
     db.session.add(msg_obj)
     db.session.commit()
 
-    emit('receive_message', {'username': username, 'message': message}, broadcast=True)
+    emit('receive_message', {
+    'username': username,
+    'message': message,
+    'timestamp': msg_obj.timestamp.strftime('%H:%M')
+}, broadcast=True)
 
 # ====== 启动应用 ======
 if __name__ == '__main__':
