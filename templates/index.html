@@ -1,232 +1,254 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fink的小窝 - 注册与登录</title>
-  <meta name="description" content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"/>
-  <!-- 设置网页图标（favicon） -->
-  <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
-  <!-- 可选：社交分享图标（Open Graph） -->
-  <meta property="og:title" content="Fink的小窝 - 注册与登录" />
-  <meta property="og:description" content="和朋友们一起窝在这里聊天吧！" />
-  <meta property="og:image" content="/static/logo.webp" />
-  <meta property="og:type" content="website" />
-  <style>
-
-    .logo-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    
-    .logo-box img {
-      width: 72px;
-      height: 72px;
-      margin-bottom: 12px;
-      border-radius: 16px;
-    }
-
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #f0f2f5;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 16px;
-    }
-
-    .container {
-      background: white;
-      padding: 30px 25px;
-      border-radius: 10px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 380px;
-      text-align: center;
-    }
-
-    h2 {
-      margin-bottom: 24px;
-      color: #333;
-      font-size: 22px;
-    }
-
-    label {
-      display: block;
-      text-align: left;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #555;
-      font-size: 14px;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 10px 12px;
-      margin-bottom: 18px;
-      border: 1.8px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-      border-color: #3b82f6;
-      outline: none;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    button {
-      flex: 1 1 45%;
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      padding: 12px 0;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #2563eb;
-    }
-
-    #message {
-      margin-top: 18px;
-      font-size: 15px;
-      min-height: 22px;
-      user-select: none;
-      color: #555;
-    }
-
-    @media (max-width: 400px) {
-      .btn-group {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fink的小窝 - 注册与登录</title>
+    <meta
+      name="description"
+      content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"
+    />
+    <!-- 设置网页图标（favicon） -->
+    <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
+    <!-- 可选：社交分享图标（Open Graph） -->
+    <meta property="og:title" content="Fink的小窝 - 注册与登录" />
+    <meta property="og:description" content="和朋友们一起窝在这里聊天吧！" />
+    <meta property="og:image" content="/static/logo.webp" />
+    <meta property="og:type" content="website" />
+    <style>
+      .logo-box {
+        display: flex;
         flex-direction: column;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      
+      .logo-title-row {
+        display: flex;
+        align-items: center;
         gap: 10px;
       }
+      
+      .logo-title-row img {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+      }
+      
+      .main-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #f06292; /* 粉色 */
+      }
+      
+      .subtitle {
+        margin-top: 12px;
+        color: #333;
+        font-size: 18px;
+      }
 
-      button {
-        flex: 1 1 100%;
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #f0f2f5;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+      }
+
+      .container {
+        background: white;
+        padding: 30px 25px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 380px;
+        text-align: center;
       }
 
       h2 {
-        font-size: 20px;
+        margin-bottom: 24px;
+        color: #333;
+        font-size: 22px;
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="logo-box">
-      <img src="/static/logo.webp" alt="Fink的小窝 Logo" />
-      <h2>用户注册与登录</h2>
+
+      label {
+        display: block;
+        text-align: left;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #555;
+        font-size: 14px;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 18px;
+        border: 1.8px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus {
+        border-color: #3b82f6;
+        outline: none;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      button {
+        flex: 1 1 45%;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 0;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      button:hover {
+        background-color: #2563eb;
+      }
+
+      #message {
+        margin-top: 18px;
+        font-size: 15px;
+        min-height: 22px;
+        user-select: none;
+        color: #555;
+      }
+
+      @media (max-width: 400px) {
+        .btn-group {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        button {
+          flex: 1 1 100%;
+        }
+
+        h2 {
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo-box">
+        <div class="logo-title-row">
+          <img src="/static/logo.webp" alt="Fink的小窝 Logo" />
+          <span class="main-title">Fink的小窝</span>
+        </div>
+        <h2 class="subtitle">用户注册与登录</h2>
+      </div>
+
+      <label for="username">用户名</label>
+      <input type="text" id="username" placeholder="请输入用户名" />
+
+      <label for="password">密码</label>
+      <input type="password" id="password" placeholder="请输入密码" />
+
+      <div class="btn-group">
+        <button type="button" onclick="register()">注册</button>
+        <button type="button" onclick="login()">登录</button>
+      </div>
+
+      <p id="message"></p>
     </div>
 
-    <label for="username">用户名</label>
-    <input type="text" id="username" placeholder="请输入用户名" />
+    <script>
+      const messageEl = document.getElementById("message");
 
-    <label for="password">密码</label>
-    <input type="password" id="password" placeholder="请输入密码" />
+      function register() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
 
-    <div class="btn-group">
-      <button type="button" onclick="register()">注册</button>
-      <button type="button" onclick="login()">登录</button>
-    </div>
+        if (!username || !password) {
+          messageEl.style.color = "red";
+          messageEl.textContent = "用户名和密码不能为空";
+          return;
+        }
 
-    <p id="message"></p>
-  </div>
-
-  <script>
-    const messageEl = document.getElementById('message');
-
-    function register() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      if (!username || !password) {
-        messageEl.style.color = 'red';
-        messageEl.textContent = '用户名和密码不能为空';
-        return;
+        fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              messageEl.style.color = "red";
+              messageEl.textContent = data.error;
+            } else {
+              messageEl.style.color = "green";
+              messageEl.textContent = data.message;
+            }
+          })
+          .catch((err) => {
+            messageEl.style.color = "red";
+            messageEl.textContent = "请求失败，请检查服务器";
+            console.error(err);
+          });
       }
 
-      fetch('/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          messageEl.style.color = 'red';
-          messageEl.textContent = data.error;
-        } else {
-          messageEl.style.color = 'green';
-          messageEl.textContent = data.message;
+      function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        if (!username || !password) {
+          messageEl.style.color = "red";
+          messageEl.textContent = "用户名和密码不能为空";
+          return;
         }
-      })
-      .catch(err => {
-        messageEl.style.color = 'red';
-        messageEl.textContent = '请求失败，请检查服务器';
-        console.error(err);
-      });
-    }
 
-    function login() {
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
+        fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) {
+              messageEl.style.color = "red";
+              messageEl.textContent = data.error;
+            } else {
+              messageEl.style.color = "green";
+              messageEl.textContent = data.message;
 
-      if (!username || !password) {
-        messageEl.style.color = 'red';
-        messageEl.textContent = '用户名和密码不能为空';
-        return;
+              setTimeout(() => {
+                window.location.href = "/home";
+              }, 800);
+            }
+          })
+          .catch((err) => {
+            messageEl.style.color = "red";
+            messageEl.textContent = "请求失败，请检查服务器";
+            console.error(err);
+          });
       }
-
-      fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          messageEl.style.color = 'red';
-          messageEl.textContent = data.error;
-        } else {
-          messageEl.style.color = 'green';
-          messageEl.textContent = data.message;
-
-          setTimeout(() => {
-            window.location.href = '/home';
-          }, 800);
-        }
-      })
-      .catch(err => {
-        messageEl.style.color = 'red';
-        messageEl.textContent = '请求失败，请检查服务器';
-        console.error(err);
-      });
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
