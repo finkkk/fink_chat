@@ -123,4 +123,17 @@ def handle_send(data):
 
 # ====== 启动应用 ======
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    import os
+
+    # 判断是否为开发模式（默认 production）
+    is_dev = os.environ.get("FLASK_ENV") == "development"
+
+    socketio.run(
+        app,
+        host='0.0.0.0',
+        port=5000,
+        debug=is_dev,
+        use_reloader=is_dev,
+        allow_unsafe_werkzeug=is_dev
+    )
+
