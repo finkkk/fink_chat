@@ -92,3 +92,46 @@ async_mode='threading'
 
 - 请勿在生产环境下使用 debug=True
 - .gitignore 已忽略虚拟环境、数据库和缓存文件
+
+---
+
+### 🔧 部署脚本说明
+
+- 本项目附带一个通用部署脚本 deploy.sh，用于在服务器或本地快速执行：
+
+- 自动拉取最新 GitHub 代码
+- 自动安装依赖(只安装新增依赖)
+- 提示您重启服务(此处需要您自行添加重启指令)
+- 示例使用：
+
+```bash
+./deploy.sh
+```
+
+- ⚠️ 注意：deploy.sh 不包含 sudo 或自动重启服务，请手动执行以下指令：
+
+```bash
+sudo supervisorctl restart fink_chat
+```
+
+### 🛡️ 私人部署脚本建议
+
+- 如果你在服务器中希望自动完成所有操作（如自动重启、使用 sudo），建议创建自己的部署脚本：
+
+```bash
+cp deploy.sh deploy-server.sh
+```
+
+- PS:该脚本(deploy-server.sh)已在.gitignore 中添加忽略，这样你服务器上的 deploy-server.sh 将不会被 Git 管理，不会被公开上传至GitHub，也不会在 git pull 时被覆盖，保护私人部署安全。
+- 创建完毕deploy-server.sh脚本后请记得在末尾手动加上重启指令(以supervisorctl为例)：
+
+```bash
+sudo supervisorctl restart fink_chat
+```
+
+- 示例使用：
+
+```bash
+./deploy-server.sh
+```
+
