@@ -125,7 +125,7 @@ def handle_send(data):
 if __name__ == '__main__':
     import os
 
-    # 判断是否为开发模式（默认 production）
+    # 判断是否为开发模式（若不做处理默认为 production）
     is_dev = os.environ.get("FLASK_ENV") == "development"
 
     socketio.run(
