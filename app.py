@@ -91,7 +91,7 @@ def handle_connect():
     history = [{
     'username': m.username,
     'message': m.message,
-    'timestamp': m.timestamp.strftime('%H:%M')
+    'timestamp': m.timestamp.strftime('%Y-%m-%d %H:%M')
 } for m in messages]
     emit('chat_history', history)
 
@@ -130,7 +130,7 @@ def handle_send(data):
     emit('receive_message', {
     'username': username,
     'message': message,
-    'timestamp': msg_obj.timestamp.strftime('%H:%M')
+    'timestamp': msg_obj.timestamp.strftime('%Y-%m-%d %H:%M')
 }, broadcast=True)
 
 # ====== 启动应用 ======
