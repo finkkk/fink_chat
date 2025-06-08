@@ -88,10 +88,10 @@ def handle_connect():
     print(f"Socket 连接建立: {request.sid}")
     messages = Message.query.order_by(Message.timestamp.desc()).limit(50).all()
     messages = reversed(messages)  # 先倒序再恢复正序
-    history = [{
+history = [{
     'username': m.username,
     'message': m.message,
-    'timestamp': msg_obj.timestamp.isoformat()
+    'timestamp': m.timestamp.isoformat()  # ✅ 用 m.timestamp
 } for m in messages]
     emit('chat_history', history)
 
