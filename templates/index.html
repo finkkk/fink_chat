@@ -22,33 +22,32 @@
         align-items: center;
         margin-bottom: 24px;
       }
-      
+
       .logo-title-row {
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-left: -10px; 
+        margin-left: -10px;
       }
-      
+
       .logo-title-row img {
         width: 48px;
         height: 48px;
         border-radius: 12px;
       }
-      
+
       .main-title {
         font-size: 24px;
         font-weight: bold;
         color: #f06292; /* 粉色 */
       }
-      
+
       .subtitle {
         margin-top: 12px;
         margin-bottom: 5px;
         color: #333;
         font-size: 18px;
       }
-
 
       * {
         box-sizing: border-box;
@@ -171,6 +170,28 @@
       <label for="password">密码</label>
       <input type="password" id="password" placeholder="请输入密码" />
 
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          gap: 32px;
+          margin-bottom: 12px;
+        "
+      >
+        <label style="display: flex; align-items: center; font-weight: 600">
+          <input
+            type="checkbox"
+            id="rememberPass"
+            checked
+            style="margin-right: 6px"
+          />
+          记住密码
+        </label>
+        <label style="display: flex; align-items: center; font-weight: 600">
+          <input type="checkbox" id="autoLogin" style="margin-right: 6px" />
+          自动登录
+        </label>
+      </div>
       <div class="btn-group">
         <button type="button" onclick="register()">注册</button>
         <button type="button" onclick="login()">登录</button>
@@ -240,6 +261,21 @@
               messageEl.style.color = "green";
               messageEl.textContent = data.message;
 
+              // 始终保存用户名
+              localStorage.setItem("savedUsername", username);
+
+              // 记住密码选项
+              const remember = document.getElementById("rememberPass").checked;
+              if (remember) {
+                localStorage.setItem("savedPassword", password);
+              } else {
+                localStorage.removeItem("savedPassword");
+              }
+
+              // 自动登录选项
+              const autoLogin = document.getElementById("autoLogin").checked;
+              localStorage.setItem("autoLogin", autoLogin ? "yes" : "no");
+
               setTimeout(() => {
                 window.location.href = "/home";
               }, 800);
@@ -251,6 +287,38 @@
             console.error(err);
           });
       }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedUsername = localStorage.getItem("savedUsername");
+        const savedPassword = localStorage.getItem("savedPassword");
+        const autoLogin = localStorage.getItem("autoLogin");
+
+        if (savedUsername) {
+          document.getElementById("username").value = savedUsername;
+        }
+
+        if (savedPassword) {
+          document.getElementById("password").value = savedPassword;
+          document.getElementById("rememberPass").checked = true;
+        }
+
+        if (autoLogin === "yes" && savedUsername && savedPassword) {
+          document.getElementById("autoLogin").checked = true;
+          login(); // 自动登录
+        } else {
+          document.getElementById("autoLogin").checked = false;
+        }
+
+        // 检查服务器 session（已登录则跳转）
+        fetch("/home", {
+          method: "GET",
+          credentials: "include",
+        }).then((res) => {
+          if (!res.redirected) {
+            window.location.href = "/home";
+          }
+        });
+      });
     </script>
   </body>
 </html>

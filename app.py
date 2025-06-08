@@ -4,9 +4,11 @@ from flask_socketio import SocketIO, emit
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__,static_folder='static')
+app.permanent_session_lifetime = timedelta(days=30)
+
 app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -55,6 +57,7 @@ def login():
     if not user or not check_password_hash(user.password_hash, password):
         return jsonify({'success': False, 'error': '用户名或密码错误'}), 400
     session['username'] = username
+    session.permanent = True  # ✅ 添加这行
     return jsonify({'success': True, 'message': '登录成功', 'username': username})
 
 # ====== 用户主页 ======
