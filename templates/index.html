@@ -6,13 +6,29 @@
   <title>Fink的小窝 - 注册与登录</title>
   <meta name="description" content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"/>
   <!-- 设置网页图标（favicon） -->
-  <link rel="icon" href="icon.ico" type="image/x-icon" />
+  <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
   <!-- 可选：社交分享图标（Open Graph） -->
   <meta property="og:title" content="Fink的小窝 - 注册与登录" />
   <meta property="og:description" content="和朋友们一起窝在这里聊天吧！" />
-  <meta property="og:image" content="logo.webp" />
+  <meta property="og:image" content="/static/logo.webp" />
   <meta property="og:type" content="website" />
   <style>
+
+    .logo-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .logo-box img {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 12px;
+      border-radius: 16px;
+    }
+
+
     * {
       box-sizing: border-box;
     }
@@ -120,7 +136,10 @@
 </head>
 <body>
   <div class="container">
-    <h2>用户注册与登录</h2>
+    <div class="logo-box">
+      <img src="/static/logo.webp" alt="Fink的小窝 Logo" />
+      <h2>用户注册与登录</h2>
+    </div>
 
     <label for="username">用户名</label>
     <input type="text" id="username" placeholder="请输入用户名" />
