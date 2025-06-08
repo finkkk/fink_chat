@@ -309,15 +309,16 @@
           document.getElementById("autoLogin").checked = false;
         }
 
-        // 检查服务器 session（已登录则跳转）
-        fetch("/home", {
-          method: "GET",
-          credentials: "include",
-        }).then((res) => {
-          if (!res.redirected) {
-            window.location.href = "/home";
-          }
-        });
+        if (autoLogin === "yes") {
+          fetch("/home", {
+            method: "GET",
+            credentials: "include",
+          }).then((res) => {
+            if (!res.redirected) {
+              window.location.href = "/home";
+            }
+          });
+        }
       });
     </script>
   </body>
