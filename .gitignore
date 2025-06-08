@@ -14,3 +14,6 @@ instance/
 
 # 隐私配置
 .env
+
+# 一键更新部署脚本
+deploy-server.sh 
