@@ -1,87 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8" />
-  <title>用户主页 - 简单聊天</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fink的小窝 - 聊天小窗</title>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background: #f0f2f5;
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
-      height: 100vh;
       justify-content: center;
       align-items: center;
+      min-height: 100vh;
     }
 
     .container {
       background: white;
-      width: 400px;
-      max-width: 90%;
-      padding: 20px 30px;
-      border-radius: 8px;
+      width: 100%;
+      max-width: 480px;
+      height: 90vh;
+      padding: 20px;
+      border-radius: 10px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
-      height: 500px;
     }
 
     h1 {
-      margin-top: 0;
+      text-align: center;
+      margin: 0 0 10px;
       color: #333;
-      text-align: center;
-    }
-
-    #chat-box {
-      flex: 1;
-      border: 1.5px solid #ccc;
-      border-radius: 6px;
-      padding: 10px;
-      overflow-y: auto;
-      margin-bottom: 8px;
-      background: #fafafa;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    #chat-input {
-      display: flex;
-    }
-
-    #chat-input input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      font-size: 14px;
-      border: 1.5px solid #ccc;
-      border-radius: 6px 0 0 6px;
-      outline: none;
-    }
-
-    #chat-input button {
-      padding: 10px 16px;
-      border: none;
-      background: #3b82f6;
-      color: white;
-      font-weight: 600;
-      border-radius: 0 6px 6px 0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    #chat-input button:hover {
-      background: #2563eb;
-    }
-
-    #logout {
-      margin-top: 10px;
-      color: #555;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: center;
+      font-size: 22px;
     }
 
     #load-more {
@@ -98,12 +54,75 @@
       background-color: #ccc;
       cursor: not-allowed;
     }
+
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      border: 1.5px solid #ccc;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    #chat-input {
+      display: flex;
+      margin-bottom: 10px;
+    }
+
+    #chat-input input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px 0 0 6px;
+      outline: none;
+    }
+
+    #chat-input button {
+      padding: 10px 16px;
+      background: #3b82f6;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 0 6px 6px 0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #chat-input button:hover {
+      background: #2563eb;
+    }
+
+    #logout {
+      color: #555;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        height: 95vh;
+        border-radius: 0;
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      #chat-box {
+        font-size: 13px;
+      }
+    }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h1>欢迎，<span id="username">{{ username }}</span></h1>
+    <h1>欢迎，<span id="username">{{ username }}来到Fink的小窝</span></h1>
     <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
     <div id="chat-box"></div>
     <div id="chat-input">
@@ -121,8 +140,8 @@
     const messageInput = document.getElementById('message');
     const loadMoreBtn = document.getElementById('load-more');
 
-    let messageOffset = 0; // 初始偏移
-    const limitPerLoad = 10; // 每次加载条数
+    let messageOffset = 0;
+    const limitPerLoad = 10;
 
     function appendMessage(data, prepend = false) {
       const msgDiv = document.createElement('div');
@@ -147,7 +166,6 @@
         return;
       }
 
-      // 显示顺序从旧到新
       messages.reverse().forEach(msg => appendMessage(msg, true));
       messageOffset += messages.length;
     });
@@ -176,5 +194,4 @@
     });
   </script>
 </body>
-
 </html>
