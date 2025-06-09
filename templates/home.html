@@ -25,20 +25,22 @@
       background: #f0f2f5;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      height: 100vh;
+      /* 占满全屏 */
+      overflow: hidden;
+      /* 防止滚动条 */
     }
 
     .container {
-      background: white;
       width: 100%;
       max-width: 480px;
-      height: 90vh;
-      padding: 20px;
+      margin: 0 auto;
+      height: calc(100vh - 40px);
+      /* 留出 footer 的高度 */
+      padding: 20px 16px 12px;
+      box-shadow: none;
       border-radius: 10px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      background: white;
       display: flex;
       flex-direction: column;
     }
@@ -112,6 +114,8 @@
       font-size: 14px;
       cursor: pointer;
       text-align: center;
+      margin-bottom: 8px;
+      /* 加上这句 */
     }
 
     @media (max-width: 480px) {
@@ -126,8 +130,33 @@
       }
 
       #chat-box {
-        font-size: 13px;
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 8px;
       }
+    }
+
+    #footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      font-size: 13px;
+      color: #888;
+      background: #f0f2f5;
+      text-align: center;
+      padding: 12px 0;
+      border-top: 1px solid #f0f2f5;
+      z-index: 99;
+    }
+
+    #footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    #footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -145,6 +174,12 @@
       <button onclick="sendMessage()">发送</button>
     </div>
     <div id="logout" onclick="logout()">退出登录</div>
+  </div>
+
+  <div id="footer">
+    © 2025 Fink ·
+    <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
+    {{ version }} · 更新:{{ updated }}
   </div>
 
   <script>

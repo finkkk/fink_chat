@@ -1,0 +1,3 @@
+# config.py
+APP_VERSION = "v1.2.3"
+APP_UPDATED = "2025-06-09"

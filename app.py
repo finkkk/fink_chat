@@ -5,6 +5,7 @@ from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
+from config import APP_VERSION, APP_UPDATED
 
 app = Flask(__name__,static_folder='static')
 app.permanent_session_lifetime = timedelta(days=30)
@@ -65,7 +66,7 @@ def login():
 def user_page():
     if 'username' not in session:
         return redirect('/')
-    return render_template('home.html', username=session['username'])
+    return render_template('home.html', username=session['username'], version=APP_VERSION, updated=APP_UPDATED)
 
 # ====== 退出登录 ======
 @app.route('/logout')
@@ -76,7 +77,7 @@ def logout():
 # ====== 首页 ======
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', version=APP_VERSION, updated=APP_UPDATED)
 
 # ====== Socket.IO 聊天逻辑 ======
 

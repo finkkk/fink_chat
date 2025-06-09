@@ -152,6 +152,30 @@
         font-size: 20px;
       }
     }
+
+
+    #footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      font-size: 13px;
+      color: #888;
+      background: #f0f2f5;
+      text-align: center;
+      padding: 12px 0;
+      border-top: 1px solid #f0f2f5;
+      z-index: 99;
+    }
+
+    #footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    #footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -192,6 +216,12 @@
     </div>
 
     <p id="message"></p>
+  </div>
+
+  <div id="footer">
+    © 2025 Fink ·
+    <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
+    {{ version }} · 更新:{{ updated }}
   </div>
 
   <script>
