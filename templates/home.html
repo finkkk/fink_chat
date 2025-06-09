@@ -35,8 +35,7 @@
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
-      height: calc(100vh - 60px);
-      /* 留出 footer 的高度 */
+      min-height: 100vh;
       padding: 20px 16px 12px;
       box-shadow: none;
       border-radius: 10px;
@@ -150,16 +149,15 @@
     }
 
     #footer {
-      position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
       font-size: 13px;
       color: #888;
-      background: #f0f2f5;
+      background: #ffffff;
       text-align: center;
       padding: 12px 0;
-      border-top: 1px solid #f0f2f5;
+      border-top: 1px solid #ffffff;
       z-index: 99;
     }
 
@@ -193,13 +191,15 @@
       <input type="text" id="message" placeholder="输入消息..." />
       <button onclick="sendMessage()">发送</button>
     </div>
-  </div>
 
-  <div id="footer">
+      <div id="footer">
     © 2025 Fink ·
     <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
     {{ version }} · 更新:{{ updated }}
   </div>
+  </div>
+
+
 
   <script>
     const username = "{{ username }}";
