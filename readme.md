@@ -6,13 +6,13 @@
 <p align="center">Flask 框架下的简易聊天网站</p>
 
 <p align="center">
-  <a href="#readme"><img src="https://img.shields.io/badge/README-%F0%9F%93%9A-blue?style=flat-square"></a>
-  <img src="https://img.shields.io/badge/ENGLISH-blue?style=flat-square">
-  <img src="https://img.shields.io/github/stars/finkkk/fink_chat?style=flat-square"> <!-- ✅ 替换为你的 GitHub 仓库名 -->
-  <img src="https://img.shields.io/github/actions/workflow/status/finkkk/fink_chat/python-app.yml?label=CI%20BUILD&style=flat-square"> <!-- ✅ CI workflow 文件名 -->
-  <img src="https://img.shields.io/badge/Release-v1.2.3-blue?style=flat-square"> <!-- ✅ 配合 config.py 里的版本 -->
-  <img src="https://img.shields.io/badge/Downloads-1K-brightgreen?style=flat-square"> <!-- ✅ 可自定义数字 -->
-  <a href="https://t.me/your_telegram_group"><img src="https://img.shields.io/badge/Telegram-GROUP-blue?style=flat-square&logo=telegram"></a> <!-- ✅ 可换成 QQ 群链接等 -->
+  <img src="https://img.shields.io/badge/文档-📘-blue?style=flat-square">
+  <img src="https://img.shields.io/badge/语言-中文-blue?style=flat-square"
+  <img src="https://img.shields.io/github/stars/finkkk/fink_chat?style=flat-square"> 
+
+  <img src="https://img.shields.io/badge/Release-v1.2.3-blue?style=flat-square"> 
+
+
 </p>
 
 # Flask 聊天网站项目
