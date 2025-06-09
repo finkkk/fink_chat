@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://finkkk.net/static/logo.webp" width="120" alt="logo">
+  <img src="https://finkkk.net/static/logo.webp" width="120" alt="logo">
 </p>
 
 <h1 align="center">Fink-chat</h1>
