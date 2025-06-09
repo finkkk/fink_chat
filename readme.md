@@ -37,12 +37,19 @@
 
 ## 🛠 技术栈
 
-- Python 3.x
-- Flask
-- Flask-SocketIO
-- Flask-SQLAlchemy
-- Flask-CORS
-- SQLite（用户和聊天记录存储）
+- **Python 3.x**
+- **Flask**：后端开发框架
+- **Flask-SocketIO**：实现 WebSocket 实时通信
+- **Flask-SQLAlchemy**：ORM 数据库操作
+- **Flask-CORS**：跨域支持
+- **Eventlet**：异步通信底层支持（用于生产环境）
+- **SQLite**：用户和聊天记录本地存储
+- **HTML/CSS/JavaScript**：前端界面开发
+- **Jinja2**：模板引擎，服务端渲染页面和变量
+- **Socket.IO.js**：前端 WebSocket 客户端库
+- **localStorage**：本地保存自动登录、公告状态
+- **Google Analytics**：站点访问统计追踪
+- **PWA（渐进式 Web 应用）**：支持离线访问、安装体验
 
 ---
 
