@@ -52,19 +52,41 @@
       font-size: 22px;
     }
 
-    #load-more {
+
+    #top-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 10px;
+    }
+
+    #load-more {
+      flex: 1;
       padding: 6px 12px;
       font-size: 13px;
       background: #eee;
-      border: none;
-      border-radius: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
       cursor: pointer;
     }
 
     #load-more:disabled {
       background-color: #ccc;
       cursor: not-allowed;
+    }
+
+    #logout {
+      padding: 6px 7px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #logout img {
+      width: 18px;
+      height: 18px;
+      display: block;
     }
 
     #chat-box {
@@ -107,15 +129,6 @@
 
     #chat-input button:hover {
       background: #2563eb;
-    }
-
-    #logout {
-      color: #555;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: center;
-      margin-bottom: 8px;
-      /* 加上这句 */
     }
 
     @media (max-width: 480px) {
@@ -167,13 +180,19 @@
       欢迎，<span id="username" style="color: #ff69b4; font-weight: bold">{{ username }}</span>
       来到Fink的小窝
     </h1>
-    <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
+
+    <div id="top-bar">
+      <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
+      <button id="logout" onclick="logout()">
+        <img src="/static/logout.svg" alt="退出" />
+      </button>
+    </div>
+
     <div id="chat-box"></div>
     <div id="chat-input">
       <input type="text" id="message" placeholder="输入消息..." />
       <button onclick="sendMessage()">发送</button>
     </div>
-    <div id="logout" onclick="logout()">退出登录</div>
   </div>
 
   <div id="footer">
