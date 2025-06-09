@@ -267,6 +267,11 @@
 
         messages.reverse().forEach((msg) => appendMessage(msg, true));
         messageOffset += messages.length;
+
+        // ✅ 首次进入自动滚动到底部
+        if (messageOffset === messages.length) {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
       });
 
       socket.on("receive_message", (data) => {
