@@ -84,6 +84,16 @@
       cursor: not-allowed;
     }
 
+    #online-count-btn {
+      flex: 1;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     #logout {
       padding: 6px 7px;
       background: #fff;
@@ -232,6 +242,24 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     </div>
 
 
+    <!-- 在线用户列表遮罩 -->
+    <div id="online-overlay"
+      style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:998;">
+    </div>
+
+    <!-- 在线用户列表弹窗 -->
+    <div id="online-modal"
+      style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+  z-index:999; background:#f7d6d6; border:1px solid #ccc; border-radius:8px; padding:16px 20px; max-width:300px; width:90%; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:16px; color:#333;">实时在线用户列表</strong>
+        <button onclick="closeOnlineList()"
+          style="background:none; border:none; font-size:16px; cursor:pointer;">✕</button>
+      </div>
+      <div id="online-user-list" style="margin-top:12px; font-size:14px; max-height:200px; overflow-y:auto;"></div>
+    </div>
+
+
 
 
 
@@ -243,6 +271,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
     <div id="top-bar">
       <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
+      <button id="online-count-btn" onclick="openOnlineList()">当前在线人数：0</button>
       <button id="logout" onclick="logout()">
         <img src="/static/logout.svg" alt="退出" />
       </button>
@@ -276,6 +305,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     function initSocket() {
       socket = io({ withCredentials: true });
 
+      // 处理连接逻辑
       socket.on("connect", () => {
         console.log("已连接到服务器");
         // 向后端绑定用户名和角色
@@ -289,21 +319,73 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
           loadMoreBtn.textContent = "没有更多消息";
           return;
         }
-
         messages.reverse().forEach((msg) => appendMessage(msg, true));
         messageOffset += messages.length;
-
         if (messageOffset === messages.length) {
           chatBox.scrollTop = chatBox.scrollHeight;
         }
-
-
       });
 
       // 接收实时消息
       socket.on("receive_message", (data) => {
         appendMessage(data);
         playMentionSound(data);
+      });
+
+      // 更新显示在线用户列表人数
+      socket.on("online_users", (userList) => {
+        // 排除游客
+        const filtered = userList.filter(u => u.role !== "guest");
+
+        // 排序规则
+        filtered.sort((a, b) => {
+          const getPriority = (u) => {
+            if (u.username === window.username) return 0;
+            if (u.role === "super_admin") return 1;
+            if (u.role === "admin") return 2;
+            return 3; // 普通用户
+          };
+          return getPriority(a) - getPriority(b);
+        });
+
+        // 渲染
+        const container = document.getElementById("online-user-list");
+        container.innerHTML = filtered.map(({ username, role }) => {
+          const isSelf = username === window.username;
+          const label = isSelf ? "（你）" : "";
+
+          let color = "#3b82f6"; // 普通用户字体色
+          if (isSelf) color = "#10b981"; // 自己绿色
+          else if (role === "super_admin") color = "red";
+          else if (role === "admin") color = "orange";
+          let badge = "";
+          if (role === "super_admin") badge = "👑";
+          else if (role === "admin") badge = "🎯";
+          return `
+            <div style="
+              background: #f3f4f6;
+              border-radius: 12px;
+              padding: 10px 14px;
+              margin-bottom: 10px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              font-weight: 600;
+              font-size: 15px;
+              color: ${color};
+              transition: transform 0.2s ease;
+            "
+            >
+              <span>${username}${label}</span>
+              <span style="font-size: 18px;">${badge}</span>
+            </div>
+          `;
+        }).join("");
+
+        // 更新按钮人数（包含游客在内的总数）
+        const btn = document.getElementById("online-count-btn");
+        btn.textContent = `当前在线人数：${userList.length}`;
       });
     }
 
@@ -453,14 +535,18 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       if (e.key === "Enter") sendMessage();
     });
 
-    // 注册 PWA Service Worker
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/static/service-worker.js")
-          .then((reg) => console.log("ServiceWorker 注册成功:", reg.scope))
-          .catch((err) => console.log("ServiceWorker 注册失败:", err));
-      });
+    // 打开在线用户列表浮窗
+    function openOnlineList() {
+      document.getElementById("online-overlay").style.display = "block";
+      document.getElementById("online-modal").style.display = "block";
+      document.body.style.overflow = "hidden";
+    }
+
+    // 关闭在线用户列表浮窗
+    function closeOnlineList() {
+      document.getElementById("online-overlay").style.display = "none";
+      document.getElementById("online-modal").style.display = "none";
+      document.body.style.overflow = "";
     }
 
     // 检查是否需要展示公告栏
@@ -492,7 +578,6 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       localStorage.setItem("announcement_seen_id", window.currentAnnouncementId);
       closeAnnouncement();
     }
-
 
     // 页面加载时检查公告 并检查身份 若是游客关闭输入栏发送消息的权限
     window.addEventListener("DOMContentLoaded", () => {
@@ -539,6 +624,16 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         button.onclick = () => window.location.href = "/";
       }
     });
+
+    // 注册 PWA Service Worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/static/service-worker.js")
+          .then((reg) => console.log("ServiceWorker 注册成功:", reg.scope))
+          .catch((err) => console.log("ServiceWorker 注册失败:", err));
+      });
+    }
   </script>
 </body>
 

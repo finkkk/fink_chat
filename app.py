@@ -69,7 +69,7 @@ def login():
     if not user or not check_password_hash(user.password_hash, password):
         return jsonify({'success': False, 'error': '用户名或密码错误'}), 400
     session['username'] = username
-    session.permanent = True  # ✅ 添加这行
+    session.permanent = True  
     return jsonify({'success': True, 'message': '登录成功', 'username': username})
 
 
@@ -126,6 +126,15 @@ def index():
 # ====== Socket.IO 聊天逻辑 ======
 # 保存 socket.id 与用户名的映射
 user_sid_map = {}
+# 实时在线用户列表
+online_users = set()
+# 获取用户身份的方法
+def get_user_info(username):
+    return {
+        "username": username,
+        "role": get_user_role(username)
+    }
+# 连接逻辑
 @socketio.on('connect')
 def handle_connect():
     # 新连接时发送最近 50 条消息
@@ -139,7 +148,7 @@ def handle_connect():
         'role': get_user_role(m.username)  
     } for m in messages]
     emit('chat_history', history)
-
+# 加载更多历史记录信息
 @socketio.on('load_more_history')
 def handle_load_more(data):
     # 加载更多历史消息（分页）
@@ -154,21 +163,25 @@ def handle_load_more(data):
         'role': get_user_role(m.username) 
     } for m in messages]
     emit('chat_history', result)
-
+# 绑定/传输用户名数据
 @socketio.on('bind_username')
 def bind_username(data):
-    # 将 socket.id 和用户名绑定
     username = data.get('username')
     if username:
         user_sid_map[request.sid] = username
+        online_users.add(username)
         print(f'绑定用户: {username} <==> {request.sid}')
+        emit('online_users', [get_user_info(u) for u in online_users], broadcast=True)
 
+# 断连逻辑
 @socketio.on('disconnect')
 def handle_disconnect():
-    # "Socket 断开时清除绑定信息
     username = user_sid_map.pop(request.sid, None)
+    if username and username in online_users:
+        online_users.remove(username)
+        emit('online_users', [get_user_info(u) for u in online_users], broadcast=True)
     print(f"断开连接: {request.sid} 用户: {username}")
-
+# 发送信息逻辑
 @socketio.on('send_message')
 def handle_send(data):
     # 处理用户发送的消息并广播
@@ -201,6 +214,13 @@ def handle_send(data):
 }, broadcast=True)
 
 
+# ====== 所有用户名列表（用于 @ 高亮） ======
+@app.route("/usernames")
+def get_all_usernames():
+    users = User.query.with_entities(User.username).all()
+    return jsonify([u.username for u in users])
+
+
 # ====== 弹出公告栏 逻辑 ======
 @app.route("/announcement")
 def get_announcement():
@@ -211,13 +231,6 @@ def get_announcement():
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": "公告读取失败", "details": str(e)}), 500
-
-
-# ====== 所有用户名列表（用于 @ 高亮） ======
-@app.route("/usernames")
-def get_all_usernames():
-    users = User.query.with_entities(User.username).all()
-    return jsonify([u.username for u in users])
 
 
 # ====== SEO 文件服务 ======
