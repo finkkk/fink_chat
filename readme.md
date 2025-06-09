@@ -1,3 +1,20 @@
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/xxx/xxx.png" width="120" alt="logo">
+</p>
+
+<h1 align="center">fas-rs</h1>
+<p align="center">Frame aware scheduling for android</p>
+
+<p align="center">
+  <a href="#readme"><img src="https://img.shields.io/badge/README-%F0%9F%93%9A-blue?style=flat-square"></a>
+  <img src="https://img.shields.io/badge/ENGLISH-blue?style=flat-square">
+  <img src="https://img.shields.io/github/stars/yourname/fas-rs?style=flat-square">
+  <img src="https://img.shields.io/github/workflow/status/yourname/fas-rs/CI?label=CI%20BUILD&style=flat-square">
+  <img src="https://img.shields.io/badge/Release-v4.9.0-blue?style=flat-square">
+  <img src="https://img.shields.io/badge/Downloads-121K-brightgreen?style=flat-square">
+  <a href="https://t.me/your_telegram_group"><img src="https://img.shields.io/badge/Telegram-GROUP-blue?style=flat-square&logo=telegram"></a>
+</p>
+
 # Flask 聊天网站项目
 
 这是一个基于 Flask + Flask-SocketIO 构建的简易实时聊天网站，支持用户注册、登录、保持会话状态以及多人聊天功能。前后端通过 WebSocket 实现实时通信，使用 SQLite 存储用户和消息数据。
