@@ -5,7 +5,8 @@ from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-from config import APP_VERSION, APP_UPDATED, GUEST_USERNAME, ADMIN_USERNAMES, SUPER_ADMIN_USERNAMES
+from config import APP_VERSION, APP_UPDATED, GUEST_USERNAME,SYSTEM_USERNAME, ADMIN_USERNAMES, SUPER_ADMIN_USERNAMES
+from commands import handle_command, AVAILABLE_COMMANDS
 import json
 
 
@@ -38,6 +39,7 @@ class Message(db.Model):
     username = db.Column(db.String(64))
     message = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    role = db.Column(db.String(32), default="user")  
 
 
 # ====== 初始化数据库 ======
@@ -145,7 +147,7 @@ def handle_connect():
         'username': m.username,
         'message': m.message,
         'timestamp': m.timestamp.isoformat(),
-        'role': get_user_role(m.username)  
+        'role': m.role or get_user_role(m.username)  # 优先取数据库字段
     } for m in messages]
     emit('chat_history', history)
 # 加载更多历史记录信息
@@ -160,7 +162,7 @@ def handle_load_more(data):
         'username': m.username,
         'message': m.message,
         'timestamp': m.timestamp.isoformat(),
-        'role': get_user_role(m.username) 
+        'role': m.role or get_user_role(m.username)  # 增加兜底判断
     } for m in messages]
     emit('chat_history', result)
 # 绑定/传输用户名数据
@@ -181,16 +183,18 @@ def handle_disconnect():
         online_users.remove(username)
         emit('online_users', [get_user_info(u) for u in online_users], broadcast=True)
     print(f"断开连接: {request.sid} 用户: {username}")
-# 发送信息逻辑
+
+
+# 发送消息逻辑
 @socketio.on('send_message')
 def handle_send(data):
-    # 处理用户发送的消息并广播
     username = user_sid_map.get(request.sid, '匿名用户')
+    role = get_user_role(username)
 
-    # 如果是游客，不能发消息
-    if get_user_role(username) == "guest":
+    # 游客不能发言
+    if role == "guest":
         emit('receive_message', {
-            'username': '系统',
+            'username': SYSTEM_USERNAME,
             'message': '⚠️ 游客无法发送消息，请注册登录。',
             'timestamp': datetime.utcnow().isoformat()
         }, room=request.sid)
@@ -200,18 +204,39 @@ def handle_send(data):
     if not message:
         return
 
-    # 存储消息
-    msg_obj = Message(username=username, message=message)
+    # ===== 判断是否是指令 =====
+    if message.startswith('/'):
+        parts = message.split()
+        command = parts[0]
+        args = parts[1:]
+        result = handle_command(command, args, username, role=role)
+        result['timestamp'] = datetime.utcnow().isoformat()
+        result['role'] = 'system'
+
+        # 保存到数据库（如果需要）
+        if result.get('save'):
+            msg_obj = Message(username=SYSTEM_USERNAME, message=result['message'], role='system')  # 指令标记 system
+            db.session.add(msg_obj)
+            db.session.commit()
+            result['timestamp'] = msg_obj.timestamp.isoformat()
+
+        # 广播 or 仅给自己
+        if result.get('broadcast'):
+            emit('receive_message', result, broadcast=True)
+        else:
+            emit('receive_message', result, room=request.sid)
+        return  # ← 很重要：指令逻辑处理完直接返回
+
+    # ===== 普通消息处理 =====
+    msg_obj = Message(username=username, message=message, role=role)
     db.session.add(msg_obj)
     db.session.commit()
-
-    # 广播消息
     emit('receive_message', {
         'username': username,
         'message': message,
         'timestamp': msg_obj.timestamp.isoformat(),
-        'role': get_user_role(username)  # 加上这行
-}, broadcast=True)
+        'role': role
+    }, broadcast=True)
 
 
 # ====== 所有用户名列表（用于 @ 高亮） ======
@@ -232,6 +257,12 @@ def get_announcement():
     except Exception as e:
         return jsonify({"error": "公告读取失败", "details": str(e)}), 500
 
+
+# ====== 获取所有指令合集 ======
+@app.route("/commands")
+def get_commands():
+    return jsonify(list(AVAILABLE_COMMANDS.keys()))
+    
 
 # ====== SEO 文件服务 ======
 @app.route("/robots.txt")

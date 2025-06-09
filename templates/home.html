@@ -250,7 +250,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     <!-- 在线用户列表弹窗 -->
     <div id="online-modal"
       style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-  z-index:999; background:#f7d6d6; border:1px solid #ccc; border-radius:8px; padding:16px 20px; max-width:300px; width:90%; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+  z-index:999; background:#dedede; border:1px solid #ccc; border-radius:8px; padding:16px 20px; max-width:300px; width:90%; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size:16px; color:#333;">实时在线用户列表</strong>
         <button onclick="closeOnlineList()"
@@ -300,6 +300,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     const loadMoreBtn = document.getElementById("load-more");
     let messageOffset = 0; // 当前历史消息加载偏移量
     const limitPerLoad = 10; // 每次最多加载多少条历史记录
+    let validCommands = new Set(); // 可用指令合集
 
     // 初始化 Socket.IO 并设置事件监听
     function initSocket() {
@@ -363,7 +364,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
           else if (role === "admin") badge = "🎯";
           return `
             <div style="
-              background: #f3f4f6;
+              background: #bab3b3;
               border-radius: 12px;
               padding: 10px 14px;
               margin-bottom: 10px;
@@ -441,10 +442,16 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       let nameColor = "#3b82f6";
 
-      // 当前用户自己是超级管理员 → 红色
-      if (data.username === window.username && window.userRole === "super_admin") {
+      // 如果发言者是系统身份
+      if (data.role === "system") {
         nameColor = "red";
       }
+
+      // 当前用户自己是超级管理员 → 红色
+      else if (data.username === window.username && window.userRole === "super_admin") {
+        nameColor = "red";
+      }
+
       // 当前用户自己是管理员 → 橙色
       else if (data.username === window.username && window.userRole === "admin") {
         nameColor = "orange";
@@ -461,23 +468,43 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       // 身份徽章
       let badge = "";
-      if (data.role === "super_admin") {
+      if (data.role === "system") {
+        badge = `<span style="margin-left: 4px; color: red; font-weight: bold;">🛠️</span>`;
+      } else if (data.role === "super_admin") {
         badge = `<span style="margin-left: 4px; color: red; font-weight: bold;">👑</span>`;
       } else if (data.role === "admin") {
         badge = `<span style="margin-left: 4px; color: orange; font-weight: bold;">🎯</span>`;
       } else if (data.role === "guest") {
         badge = `<span style="margin-left: 4px; color: gray; font-weight: bold;">👀</span>`;
       }
+
       // 构建消息 HTML 内容
       msgDiv.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start;">
         <div style="flex: 1;">
           <span class="username" style="color:${nameColor}; font-weight:bold;cursor: pointer;" onclick="atUser('${data.username}')">${data.username}</span>${badge}: 
-          ${highlightMentions(data.message)}
+          ${highlightMentions(data.message || '').replace(/\n/g, '<br>')}
         </div>
         <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
       </div>
     `;
+      // 若输入的是错误指令则执行的css样式
+      if (data.style === "error") {
+        msgDiv.style.color = "#ef4444"; // 红色字体
+      }
+
+      // 如果是系统指令消息
+      if (data.role === "system") {
+        msgDiv.style.background = "#e0f2fe";            // 更明显的浅蓝背景
+        msgDiv.style.borderRadius = "4px";
+        msgDiv.style.padding = "10px 0px";
+        msgDiv.style.margin = "4px 0";
+        msgDiv.style.color = "#1e3a8a";                 // 深蓝字体，更醒目
+        msgDiv.style.fontStyle = "normal";              // 不用斜体了
+        msgDiv.style.width = "100%";                    // 撑满宽度
+        msgDiv.style.boxSizing = "border-box";          // 包含 padding
+      }
+
       // 插入到消息框中
       if (prepend) {
         chatBox.insertBefore(msgDiv, chatBox.firstChild);
@@ -579,9 +606,33 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       closeAnnouncement();
     }
 
-    // 页面加载时检查公告 并检查身份 若是游客关闭输入栏发送消息的权限
+    // 监听输入内容 若是指令相关则渲染不同颜色提示
+    messageInput.addEventListener("input", () => {
+      const val = messageInput.value.trim();
+      if (val.startsWith('/')) {
+        const firstWord = val.split(/\s+/)[0];
+        if (validCommands.has(firstWord)) {
+          messageInput.style.color = "#22c55e"; // 绿色
+          messageInput.style.borderColor = "#22c55e";
+        } else {
+          messageInput.style.color = "#ef4444"; // 红色
+          messageInput.style.borderColor = "#ef4444";
+        }
+      } else {
+        messageInput.style.color = "";
+        messageInput.style.borderColor = "";
+      }
+    });
+
+    // 页面加载时处理(包括但不限于 检查公告 并检查身份 若是游客关闭输入栏发送消息的权限 获取可用指令合集等)
     window.addEventListener("DOMContentLoaded", () => {
       checkAnnouncement();
+
+      fetch("/commands")
+        .then(res => res.json())
+        .then(cmds => {
+          validCommands = new Set(cmds);
+        });
 
       fetch("/usernames")
         .then(res => res.json())
