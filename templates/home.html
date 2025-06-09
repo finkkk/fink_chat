@@ -192,11 +192,11 @@
       <button onclick="sendMessage()">发送</button>
     </div>
 
-      <div id="footer">
-    © 2025 Fink ·
-    <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
-    {{ version }} · 更新:{{ updated }}
-  </div>
+    <div id="footer">
+      © 2025 Fink ·
+      <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
+      {{ version }} · 更新:{{ updated }}
+    </div>
   </div>
 
 
@@ -225,10 +225,14 @@
       }
 
       msgDiv.innerHTML = `
-          <span class="username" style="color:#3b82f6; font-weight:bold;">${data.username}</span>: 
-          ${data.message}
-          <span style="float:right; font-size:12px; color:#aaa;">${timeStr}</span>
-        `;
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 1;">
+      <span class="username" style="color:#3b82f6; font-weight:bold;">${data.username}</span>: 
+      ${data.message}
+    </div>
+    <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
+  </div>
+`;
 
       if (prepend) {
         chatBox.insertBefore(msgDiv, chatBox.firstChild);
