@@ -101,7 +101,11 @@ def handle_load_more(data):
     limit = int(data.get('limit', 10))
     messages = Message.query.order_by(Message.timestamp.desc()).offset(offset).limit(limit).all()
     messages = reversed(messages)  # 倒序显示
-    result = [{'username': m.username, 'message': m.message} for m in messages]
+    result = [{
+        'username': m.username,
+        'message': m.message,
+        'timestamp': m.timestamp.isoformat()
+    } for m in messages]
     emit('chat_history', result)
 
 @socketio.on('bind_username')
