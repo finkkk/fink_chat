@@ -1,230 +1,240 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fink的小窝 - 聊天小窗</title>
+    <meta
+      name="description"
+      content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。"
+    />
+    <!-- 设置网页图标（favicon） -->
+    <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
+    <!-- 可选：社交分享图标（Open Graph） -->
+    <meta property="og:title" content="Fink的小窝 - 聊天小窗" />
+    <meta property="og:description" content="和朋友们一起窝在这里聊天吧！" />
+    <meta property="og:image" content="/static/logo.webp" />
+    <meta property="og:type" content="website" />
+    <link rel="manifest" href="/static/manifest.json" />
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fink的小窝 - 聊天小窗</title>
-  <meta name="description" content="Fink的小窝 - 一个温馨可爱的实时聊天小站，支持注册、登录、消息互动。" />
-  <!-- 设置网页图标（favicon） -->
-  <link rel="icon" href="/static/icon.ico" type="image/x-icon" />
-  <!-- 可选：社交分享图标（Open Graph） -->
-  <meta property="og:title" content="Fink的小窝 - 聊天小窗" />
-  <meta property="og:description" content="和朋友们一起窝在这里聊天吧！" />
-  <meta property="og:image" content="/static/logo.webp" />
-  <meta property="og:type" content="website" />
-  <link rel="manifest" href="/static/manifest.json" />
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        /* 占满全屏 */
+        overflow: hidden;
+        /* 防止滚动条 */
+      }
 
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      /* 占满全屏 */
-      overflow: hidden;
-      /* 防止滚动条 */
-    }
-
-    .container {
-      width: 100%;
-      max-width: 480px;
-      margin: 0 auto;
-      min-height: 100vh;
-      padding: 20px 16px 12px;
-      box-shadow: none;
-      border-radius: 10px;
-      background: white;
-      display: flex;
-      flex-direction: column;
-    }
-
-    h1 {
-      text-align: center;
-      margin: 0 0 10px;
-      color: #333;
-      font-size: 22px;
-    }
-
-
-    #top-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    #load-more {
-      flex: 1;
-      padding: 6px 12px;
-      font-size: 13px;
-      background: #eee;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #load-more:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    #logout {
-      padding: 6px 7px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #logout img {
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    #chat-box {
-      flex: 1;
-      overflow-y: auto;
-      border: 1.5px solid #ccc;
-      padding: 10px;
-      background: #fafafa;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 8px;
-      word-break: break-all;
-    }
-
-    #chat-input {
-      display: flex;
-      margin-bottom: 10px;
-    }
-
-    #chat-input input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      font-size: 14px;
-      border: 1.5px solid #ccc;
-      border-radius: 6px 0 0 6px;
-      outline: none;
-    }
-
-    #chat-input button {
-      padding: 10px 16px;
-      background: #3b82f6;
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 0 6px 6px 0;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    #chat-input button:hover {
-      background: #2563eb;
-    }
-
-    @media (max-width: 480px) {
       .container {
-        height: 95vh;
-        border-radius: 0;
-        padding: 16px;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding: 20px 16px 12px;
+        box-shadow: none;
+        border-radius: 10px;
+        background: white;
+        display: flex;
+        flex-direction: column;
       }
 
       h1 {
-        font-size: 18px;
+        text-align: center;
+        margin: 0 0 10px;
+        color: #333;
+        font-size: 22px;
+      }
+
+      #top-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      #load-more {
+        flex: 1;
+        padding: 6px 12px;
+        font-size: 13px;
+        background: #eee;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      #load-more:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+
+      #logout {
+        padding: 6px 7px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      #logout img {
+        width: 18px;
+        height: 18px;
+        display: block;
       }
 
       #chat-box {
         flex: 1;
         overflow-y: auto;
+        border: 1.5px solid #ccc;
+        padding: 10px;
+        background: #fafafa;
+        border-radius: 6px;
+        font-size: 14px;
+        line-height: 1.5;
         margin-bottom: 8px;
-      }
-    }
-
-    #footer {
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      font-size: 13px;
-      color: #888;
-      background: #ffffff;
-      text-align: center;
-      padding: 12px 0;
-      border-top: 1px solid #ffffff;
-      z-index: 99;
-    }
-
-    #footer a {
-      color: #3b82f6;
-      text-decoration: none;
-    }
-
-    #footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="container">
-    <h1>
-      欢迎，<span id="username" style="color: #ff69b4; font-weight: bold">{{ username }}</span>
-      来到Fink的小窝
-    </h1>
-
-    <div id="top-bar">
-      <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
-      <button id="logout" onclick="logout()">
-        <img src="/static/logout.svg" alt="退出" />
-      </button>
-    </div>
-
-    <div id="chat-box"></div>
-    <div id="chat-input">
-      <input type="text" id="message" placeholder="输入消息..." />
-      <button onclick="sendMessage()">发送</button>
-    </div>
-
-    <div id="footer">
-      © 2025 Fink ·
-      <a href="https://github.com/finkkk/fink_chat" target="_blank">开源地址</a> ·
-      {{ version }} · 更新:{{ updated }}
-    </div>
-  </div>
-
-
-
-  <script>
-    const username = "{{ username }}";
-    const socket = io({ withCredentials: true });
-
-    const chatBox = document.getElementById("chat-box");
-    const messageInput = document.getElementById("message");
-    const loadMoreBtn = document.getElementById("load-more");
-
-    let messageOffset = 0;
-    const limitPerLoad = 10;
-
-    function appendMessage(data, prepend = false) {
-      const msgDiv = document.createElement("div");
-
-      // 将 ISO 格式时间转换成本地时间字符串
-      let timeStr = "";
-      if (data.timestamp) {
-        try {
-          const local = new Date(data.timestamp + "Z");
-          timeStr = local.toLocaleString();  // 自动按用户本地格式显示
-        } catch { }
+        word-break: break-all;
       }
 
-      msgDiv.innerHTML = `
+      #chat-input {
+        display: flex;
+        margin-bottom: 10px;
+      }
+
+      #chat-input input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+        border: 1.5px solid #ccc;
+        border-radius: 6px 0 0 6px;
+        outline: none;
+      }
+
+      #chat-input button {
+        padding: 10px 16px;
+        background: #3b82f6;
+        color: white;
+        font-weight: 600;
+        border: none;
+        border-radius: 0 6px 6px 0;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #chat-input button:hover {
+        background: #2563eb;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          height: 95vh;
+          border-radius: 0;
+          padding: 16px;
+        }
+
+        h1 {
+          font-size: 18px;
+        }
+
+        #chat-box {
+          flex: 1;
+          overflow-y: auto;
+          margin-bottom: 8px;
+        }
+      }
+
+      #footer {
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        font-size: 13px;
+        color: #888;
+        background: #ffffff;
+        text-align: center;
+        padding: 12px 0;
+        border-top: 1px solid #ffffff;
+        z-index: 99;
+      }
+
+      #footer a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      #footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>
+        欢迎，<span id="username" style="color: #ff69b4; font-weight: bold"
+          >{{ username }}</span
+        >
+        来到Fink的小窝
+      </h1>
+
+      <div id="top-bar">
+        <button id="load-more" onclick="loadMore()">加载更多历史信息</button>
+        <button id="logout" onclick="logout()">
+          <img src="/static/logout.svg" alt="退出" />
+        </button>
+      </div>
+
+      <div id="chat-box"></div>
+      <div id="chat-input">
+        <input type="text" id="message" placeholder="输入消息..." />
+        <button onclick="sendMessage()">发送</button>
+      </div>
+
+      <div id="footer">
+        © 2025 Fink ·
+        <a href="https://github.com/finkkk/fink_chat" target="_blank"
+          >开源地址</a
+        >
+        · {{ version }} · 更新:{{ updated }}
+      </div>
+    </div>
+
+    <script>
+      const username = "{{ username }}";
+      const socket = io({ withCredentials: true });
+
+      const chatBox = document.getElementById("chat-box");
+      const messageInput = document.getElementById("message");
+      const loadMoreBtn = document.getElementById("load-more");
+
+      let messageOffset = 0;
+      const limitPerLoad = 10;
+
+      function appendMessage(data, prepend = false) {
+        const msgDiv = document.createElement("div");
+
+        // 将 ISO 格式时间转换成本地时间字符串
+        let timeStr = "";
+        if (data.timestamp) {
+          try {
+            const local = new Date(data.timestamp + "Z");
+            timeStr = local.toLocaleString(undefined, {
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+          } catch {}
+        }
+
+        msgDiv.innerHTML = `
   <div style="display: flex; justify-content: space-between; align-items: flex-start;">
     <div style="flex: 1;">
       <span class="username" style="color:#3b82f6; font-weight:bold;">${data.username}</span>: 
@@ -234,67 +244,67 @@
   </div>
 `;
 
-      if (prepend) {
-        chatBox.insertBefore(msgDiv, chatBox.firstChild);
-      } else {
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
-
-    socket.on("connect", () => {
-      console.log("已连接到服务器");
-      socket.emit("bind_username", { username });
-    });
-
-    socket.on("chat_history", (messages) => {
-      if (!messages || messages.length === 0) {
-        loadMoreBtn.disabled = true;
-        loadMoreBtn.textContent = "没有更多消息";
-        return;
+        if (prepend) {
+          chatBox.insertBefore(msgDiv, chatBox.firstChild);
+        } else {
+          chatBox.appendChild(msgDiv);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
       }
 
-      messages.reverse().forEach((msg) => appendMessage(msg, true));
-      messageOffset += messages.length;
-    });
-
-    socket.on("receive_message", (data) => {
-      appendMessage(data);
-    });
-
-    function sendMessage() {
-      const msg = messageInput.value.trim();
-      if (!msg) return;
-      socket.emit("send_message", { message: msg });
-      messageInput.value = "";
-    }
-
-    function logout() {
-      localStorage.removeItem("savedUsername");
-      localStorage.removeItem("savedPassword");
-      localStorage.setItem("autoLogin", "no");
-      window.location.href = "/logout";
-    }
-
-    function loadMore() {
-      socket.emit("load_more_history", {
-        offset: messageOffset,
-        limit: limitPerLoad,
+      socket.on("connect", () => {
+        console.log("已连接到服务器");
+        socket.emit("bind_username", { username });
       });
-    }
 
-    messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendMessage();
-    });
+      socket.on("chat_history", (messages) => {
+        if (!messages || messages.length === 0) {
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.textContent = "没有更多消息";
+          return;
+        }
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/static/service-worker.js")
-          .then(reg => console.log("ServiceWorker 注册成功:", reg.scope))
-          .catch(err => console.log("ServiceWorker 注册失败:", err));
+        messages.reverse().forEach((msg) => appendMessage(msg, true));
+        messageOffset += messages.length;
       });
-    }
-  </script>
-</body>
 
+      socket.on("receive_message", (data) => {
+        appendMessage(data);
+      });
+
+      function sendMessage() {
+        const msg = messageInput.value.trim();
+        if (!msg) return;
+        socket.emit("send_message", { message: msg });
+        messageInput.value = "";
+      }
+
+      function logout() {
+        localStorage.removeItem("savedUsername");
+        localStorage.removeItem("savedPassword");
+        localStorage.setItem("autoLogin", "no");
+        window.location.href = "/logout";
+      }
+
+      function loadMore() {
+        socket.emit("load_more_history", {
+          offset: messageOffset,
+          limit: limitPerLoad,
+        });
+      }
+
+      messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/static/service-worker.js")
+            .then((reg) => console.log("ServiceWorker 注册成功:", reg.scope))
+            .catch((err) => console.log("ServiceWorker 注册失败:", err));
+        });
+      }
+    </script>
+  </body>
 </html>
