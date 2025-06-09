@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from config import APP_VERSION, APP_UPDATED
-
+import json
 app = Flask(__name__,static_folder='static')
 app.permanent_session_lifetime = timedelta(days=30)
 
@@ -136,6 +136,20 @@ def handle_send(data):
     'message': message,
     'timestamp': msg_obj.timestamp.isoformat()
 }, broadcast=True)
+
+
+
+# ====== 弹出公告栏 逻辑 ======
+@app.route("/announcement")
+def get_announcement():
+    try:
+        with open("announcement.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": "公告读取失败", "details": str(e)}), 500
+
+
 
 # ====== 启动应用 ======
 if __name__ == '__main__':
