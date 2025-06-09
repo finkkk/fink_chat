@@ -7,8 +7,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/文档-📘-blue?style=flat-square">
-  <img src="https://img.shields.io/badge/语言-中文-blue?style=flat-square"
-  <img src="https://img.shields.io/github/stars/finkkk/fink_chat?style=flat-square"> 
+  <img src="https://img.shields.io/badge/语言-中文-blue?style=flat-square">
+  <img src="https://img.shields.io/github/stars/finkkk/fink_chat?style=flat-square">
   <img src="https://img.shields.io/github/v/release/finkkk/fink_chat?label=最新版本&style=flat-square">
 </p>
 
