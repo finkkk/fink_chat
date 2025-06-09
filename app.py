@@ -1,40 +1,49 @@
+# ====== 导入依赖 ======
 from flask import Flask, request, jsonify, session, redirect, url_for, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from config import APP_VERSION, APP_UPDATED, GUEST_USERNAME, ADMIN_USERNAMES, SUPER_ADMIN_USERNAMES
 import json
 
+
+# ====== 初始化 Flask 应用 ======
 app = Flask(__name__,static_folder='static')
-app.permanent_session_lifetime = timedelta(days=30)
+app.permanent_session_lifetime = timedelta(days=30) # Session 保留时间：30 天
 
-app.config['SECRET_KEY'] = 'your-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Flask 配置项
+app.config['SECRET_KEY'] = 'your-secret-key' # 加密密钥 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db' # 数据库路径
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # 禁用事件系统提升性能
 
+# CORS 跨域配置 & SocketIO 初始化（使用 eventlet）
 CORS(app, supports_credentials=True)
 # 使用 eventlet，开发和部署都一样
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', manage_session=True)
 db = SQLAlchemy(app)
 
-# ====== 数据模型 ======
+
+# ====== 数据模型定义 ======
 class User(db.Model):
+    # 用户表：存储用户名和密码哈希
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
 
 class Message(db.Model):
+    # 消息表：存储聊天记录
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64))
     message = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ====== 创建表 ======
+
+# ====== 初始化数据库 ======
 with app.app_context():
     db.create_all()
+
 
 # ====== 注册接口 ======
 @app.route('/register', methods=['POST'])
@@ -49,6 +58,7 @@ def register():
     db.session.commit()
     return jsonify({'success': True, 'message': '注册成功'})
 
+
 # ====== 登录接口 ======
 @app.route('/login', methods=['POST'])
 def login():
@@ -62,15 +72,17 @@ def login():
     session.permanent = True  # ✅ 添加这行
     return jsonify({'success': True, 'message': '登录成功', 'username': username})
 
+
 # ====== 游客登录接口 ======
 @app.route('/guest-login')
 def guest_login():
+    # 游客模式登录
     session['username'] = GUEST_USERNAME
     session.permanent = True
     return redirect('/home')
 
-# ====== 验证权限并分配身份 ======
 
+# ====== 验证权限并分配身份 ======
 def get_user_role(username):
     if username == GUEST_USERNAME:
         return "guest"
@@ -80,7 +92,6 @@ def get_user_role(username):
         return "admin"
     else:
         return "user"
-
 
 
 # ====== 用户主页 ======
@@ -96,23 +107,28 @@ def user_page():
                            updated=APP_UPDATED,
                            role=role)  # 带上身份
 
+
 # ====== 退出登录 ======
 @app.route('/logout')
 def logout():
+    # 清除 session 退出登录
     session.pop('username', None)
     return redirect('/')
 
-# ====== 首页 ======
+
+# ====== 登录注册页 ======
 @app.route('/')
 def index():
+    # 首页：登录/注册界面
     return render_template('index.html', version=APP_VERSION, updated=APP_UPDATED)
 
-# ====== Socket.IO 聊天逻辑 ======
 
+# ====== Socket.IO 聊天逻辑 ======
 # 保存 socket.id 与用户名的映射
 user_sid_map = {}
 @socketio.on('connect')
 def handle_connect():
+    # 新连接时发送最近 50 条消息
     print(f"Socket 连接建立: {request.sid}")
     messages = Message.query.order_by(Message.timestamp.desc()).limit(50).all()
     messages = reversed(messages)  # 先倒序再恢复正序
@@ -126,6 +142,7 @@ def handle_connect():
 
 @socketio.on('load_more_history')
 def handle_load_more(data):
+    # 加载更多历史消息（分页）
     offset = int(data.get('offset', 0))
     limit = int(data.get('limit', 10))
     messages = Message.query.order_by(Message.timestamp.desc()).offset(offset).limit(limit).all()
@@ -140,6 +157,7 @@ def handle_load_more(data):
 
 @socketio.on('bind_username')
 def bind_username(data):
+    # 将 socket.id 和用户名绑定
     username = data.get('username')
     if username:
         user_sid_map[request.sid] = username
@@ -147,11 +165,13 @@ def bind_username(data):
 
 @socketio.on('disconnect')
 def handle_disconnect():
+    # "Socket 断开时清除绑定信息
     username = user_sid_map.pop(request.sid, None)
     print(f"断开连接: {request.sid} 用户: {username}")
 
 @socketio.on('send_message')
 def handle_send(data):
+    # 处理用户发送的消息并广播
     username = user_sid_map.get(request.sid, '匿名用户')
 
     # 如果是游客，不能发消息
@@ -167,10 +187,12 @@ def handle_send(data):
     if not message:
         return
 
+    # 存储消息
     msg_obj = Message(username=username, message=message)
     db.session.add(msg_obj)
     db.session.commit()
 
+    # 广播消息
     emit('receive_message', {
         'username': username,
         'message': message,
@@ -179,10 +201,10 @@ def handle_send(data):
 }, broadcast=True)
 
 
-
 # ====== 弹出公告栏 逻辑 ======
 @app.route("/announcement")
 def get_announcement():
+    # 读取 announcement.json 内容并返回
     try:
         with open("announcement.json", "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -191,7 +213,14 @@ def get_announcement():
         return jsonify({"error": "公告读取失败", "details": str(e)}), 500
 
 
+# ====== 所有用户名列表（用于 @ 高亮） ======
+@app.route("/usernames")
+def get_all_usernames():
+    users = User.query.with_entities(User.username).all()
+    return jsonify([u.username for u in users])
 
+
+# ====== SEO 文件服务 ======
 @app.route("/robots.txt")
 def robots():
     return app.send_static_file("robots.txt")
@@ -199,7 +228,6 @@ def robots():
 @app.route("/sitemap.xml")
 def sitemap():
     return app.send_static_file("sitemap.xml")
-
 
 
 # ====== 启动应用 ======

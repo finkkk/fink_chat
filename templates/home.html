@@ -262,19 +262,83 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
   </div>
 
   <script>
-    window.username = "{{ username }}";
-    window.userRole = "{{ role }}";
-    const username = "{{ username }}";
-    const socket = io({ withCredentials: true });
-
+    const knownUsernames = new Set(); // 所有已知用户名（用于判断 @谁 是否是有效用户）
+    let socket = null;
+    window.username = "{{ username }}"; // 当前登录用户名
+    window.userRole = "{{ role }}"; // 当前用户权限角色
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message");
     const loadMoreBtn = document.getElementById("load-more");
+    let messageOffset = 0; // 当前历史消息加载偏移量
+    const limitPerLoad = 10; // 每次最多加载多少条历史记录
 
-    let messageOffset = 0;
-    const limitPerLoad = 10;
+    // 初始化 Socket.IO 并设置事件监听
+    function initSocket() {
+      socket = io({ withCredentials: true });
 
+      socket.on("connect", () => {
+        console.log("已连接到服务器");
+        // 向后端绑定用户名和角色
+        socket.emit("bind_username", { username: window.username, role: window.userRole });
+      });
+
+      // 接收历史消息（首次或点击“加载更多”）
+      socket.on("chat_history", (messages) => {
+        if (!messages || messages.length === 0) {
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.textContent = "没有更多消息";
+          return;
+        }
+
+        messages.reverse().forEach((msg) => appendMessage(msg, true));
+        messageOffset += messages.length;
+
+        if (messageOffset === messages.length) {
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+
+      });
+
+      // 接收实时消息
+      socket.on("receive_message", (data) => {
+        appendMessage(data);
+        playMentionSound(data);
+      });
+    }
+
+    // 高亮消息中有效 @用户名 的文字
+    function highlightMentions(msg) {
+      return msg.replace(/@([\u4e00-\u9fa5\w\-]+)/g, (match, uname) => {
+        if (knownUsernames.has(uname)) {
+          return `<span style="color: #f472b6; font-weight: bold;">@${uname}</span>`;
+        }
+        return match;
+      });
+    }
+
+    // 若消息中包含 @自己，则播放提示音
+    function playMentionSound(data) {
+      if (data.message && data.message.includes(`@${window.username}`)) {
+        const audio = new Audio('/static/notify.mp3');
+        audio.play().catch(() => { }); // 避免浏览器自动播放限制报错
+      }
+    }
+
+    // 若消息中包含 @自己，则让该消息块背景短暂高亮
+    function highlightIfMentioned(msgDiv, data) {
+      if (data.message && data.message.includes(`@${window.username}`)) {
+        msgDiv.style.transition = "background-color 0.8s ease";
+        msgDiv.style.backgroundColor = "#ffe4ec";
+        setTimeout(() => {
+          msgDiv.style.backgroundColor = "transparent";
+        }, 1500);
+      }
+    }
+
+    // 渲染并插入单条消息，prepend=true 表示向上插入（历史记录）
     function appendMessage(data, prepend = false) {
+
       const msgDiv = document.createElement("div");
 
       // 将 ISO 格式时间转换成本地时间字符串
@@ -303,7 +367,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       else if (data.username === window.username && window.userRole === "admin") {
         nameColor = "orange";
       }
-      
+
       // 如果发言者是超级管理员 → 红色
       else if (data.role === "super_admin") {
         nameColor = "red";
@@ -322,50 +386,42 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       } else if (data.role === "guest") {
         badge = `<span style="margin-left: 4px; color: gray; font-weight: bold;">👀</span>`;
       }
-
+      // 构建消息 HTML 内容
       msgDiv.innerHTML = `
-  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-    <div style="flex: 1;">
-      <span class="username" style="color:${nameColor}; font-weight:bold;">${data.username}</span>${badge}: 
-      ${data.message}
-    </div>
-    <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
-  </div>
-`;
-
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <span class="username" style="color:${nameColor}; font-weight:bold;cursor: pointer;" onclick="atUser('${data.username}')">${data.username}</span>${badge}: 
+          ${highlightMentions(data.message)}
+        </div>
+        <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
+      </div>
+    `;
+      // 插入到消息框中
       if (prepend) {
         chatBox.insertBefore(msgDiv, chatBox.firstChild);
       } else {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
       }
+      // 如果该消息是 @ 自己的，高亮提示
+      highlightIfMentioned(msgDiv, data);
+    }
+    // 点击用户名时自动补齐 @用户名 到输入栏中
+    function atUser(name) {
+      const input = document.getElementById("message");
+      const atText = `@${name} `;
+
+      // 如果已经包含，不重复添加@信息
+      if (!input.value.includes(atText)) {
+        const span = document.createElement("span");
+        span.style.color = "#f472b6"; // 粉色
+        span.textContent = atText;
+        input.value += input.value ? ` ${atText}` : atText;
+        input.focus();
+      }
     }
 
-    socket.on("connect", () => {
-      console.log("已连接到服务器");
-      socket.emit("bind_username", { username, role: window.userRole });
-    });
-
-    socket.on("chat_history", (messages) => {
-      if (!messages || messages.length === 0) {
-        loadMoreBtn.disabled = true;
-        loadMoreBtn.textContent = "没有更多消息";
-        return;
-      }
-
-      messages.reverse().forEach((msg) => appendMessage(msg, true));
-      messageOffset += messages.length;
-
-      // 首次进入自动滚动到底部
-      if (messageOffset === messages.length) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    });
-
-    socket.on("receive_message", (data) => {
-      appendMessage(data);
-    });
-
+    // 发送当前输入栏的消息
     function sendMessage() {
       const msg = messageInput.value.trim();
       if (!msg) return;
@@ -373,6 +429,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       messageInput.value = "";
     }
 
+    // 退出登录，清除缓存，跳转 logout
     function logout() {
       if (window.username === "游客") {
         localStorage.removeItem("savedUsername"); // 清除游客名
@@ -383,6 +440,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       window.location.href = "/logout";
     }
 
+    // 加载更多历史记录
     function loadMore() {
       socket.emit("load_more_history", {
         offset: messageOffset,
@@ -390,10 +448,12 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       });
     }
 
+    // 支持回车快速发送
     messageInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") sendMessage();
     });
 
+    // 注册 PWA Service Worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
@@ -403,9 +463,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       });
     }
 
-
-
-
+    // 检查是否需要展示公告栏
     function checkAnnouncement() {
       fetch('/announcement')
         .then(res => res.json())
@@ -422,12 +480,14 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         });
     }
 
+    // 关闭公告栏
     function closeAnnouncement() {
       document.getElementById("announcement-modal").style.display = "none";
       document.getElementById("announcement-overlay").style.display = "none"; // 隐藏遮罩
       document.body.style.overflow = ""; // 恢复滚动
     }
 
+    // 记录已阅读过该ID的公告栏信息
     function acknowledgeAnnouncement() {
       localStorage.setItem("announcement_seen_id", window.currentAnnouncementId);
       closeAnnouncement();
@@ -437,6 +497,13 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     // 页面加载时检查公告 并检查身份 若是游客关闭输入栏发送消息的权限
     window.addEventListener("DOMContentLoaded", () => {
       checkAnnouncement();
+
+      fetch("/usernames")
+        .then(res => res.json())
+        .then(names => {
+          names.forEach(name => knownUsernames.add(name));
+          initSocket(); // ← 加载完用户名后再连接 socket
+        });
 
       const role = window.userRole;
       const nameEl = document.getElementById("username");
