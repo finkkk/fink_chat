@@ -192,6 +192,16 @@ def get_announcement():
 
 
 
+@app.route("/robots.txt")
+def robots():
+    return app.send_static_file("robots.txt")
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return app.send_static_file("sitemap.xml")
+
+
+
 # ====== 启动应用 ======
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000)
