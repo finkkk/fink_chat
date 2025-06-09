@@ -1,3 +1,17 @@
+<p align="center">
+  <img src="static/logo.webp" width="120" alt="logo">
+</p>
+
+<h1 align="center">Fink-chat</h1>
+<p align="center">Flask 框架下的简易聊天网站</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/文档-📘-blue?style=flat-square">
+  <img src="https://img.shields.io/badge/语言-中文-blue?style=flat-square">
+  <img src="https://img.shields.io/github/stars/finkkk/fink_chat?style=flat-square">
+  <img src="https://img.shields.io/github/v/release/finkkk/fink_chat">
+</p>
+
 # Flask 聊天网站项目
 
 这是一个基于 Flask + Flask-SocketIO 构建的简易实时聊天网站，支持用户注册、登录、保持会话状态以及多人聊天功能。前后端通过 WebSocket 实现实时通信，使用 SQLite 存储用户和消息数据。
