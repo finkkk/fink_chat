@@ -15,6 +15,17 @@
   <meta property="og:type" content="website" />
   <link rel="manifest" href="/static/manifest.json" />
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZK9F0GE4SE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-ZK9F0GE4SE');
+  </script>
+  
   <style>
     * {
       box-sizing: border-box;
@@ -185,7 +196,7 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-  
+
     #announcement-modal button.confirm-btn:hover {
       background: #d48806;
     }
@@ -209,7 +220,8 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         <div style="display: flex; justify-content: space-between; align-items: start;">
           <div>
             <strong id="announcement-title" style="color: #f2ae26; font-size: 16px;"></strong>
-            <p id="announcement-content" style="margin: 6px 0 0; color: #333; font-size: 14px;white-space: pre-line;"></p>
+            <p id="announcement-content" style="margin: 6px 0 0; color: #333; font-size: 14px;white-space: pre-line;">
+            </p>
           </div>
           <button onclick="closeAnnouncement()"
             style="background: none; border: none; font-weight: bold; cursor: pointer; font-size: 16px;">✕</button>
@@ -373,7 +385,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
           }
         });
     }
-    
+
     function closeAnnouncement() {
       document.getElementById("announcement-modal").style.display = "none";
       document.getElementById("announcement-overlay").style.display = "none"; // 隐藏遮罩
