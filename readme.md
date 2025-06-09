@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/xxx/xxx.png" width="120" alt="logo">
+  <img src="http://finkkk.net/static/logo.webp" width="120" alt="logo">
 </p>
 
 <h1 align="center">Fink-chat</h1>
