@@ -138,17 +138,6 @@
           padding: 16px;
         }
 
-        @media (min-width: 768px) {
-          .container {
-            max-width: 680px;
-          }
-        }
-        @media (min-width: 1200px) {
-          .container {
-            max-width: 860px;
-          }
-        }
-
         h1 {
           font-size: 18px;
         }
@@ -157,6 +146,19 @@
           flex: 1;
           overflow-y: auto;
           margin-bottom: 8px;
+        }
+      }
+
+      /* ✅ PC端宽度扩展写法 */
+      @media (min-width: 768px) {
+        .container {
+          max-width: 680px;
+        }
+      }
+
+      @media (min-width: 1200px) {
+        .container {
+          max-width: 860px;
         }
       }
 
