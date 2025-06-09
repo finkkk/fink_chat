@@ -2,8 +2,8 @@
   <img src="https://user-images.githubusercontent.com/xxx/xxx.png" width="120" alt="logo">
 </p>
 
-<h1 align="center">fas-rs</h1>
-<p align="center">Frame aware scheduling for android</p>
+<h1 align="center">Fink-chat</h1>
+<p align="center">flask框架下的简易聊天网站</p>
 
 <p align="center">
   <a href="#readme"><img src="https://img.shields.io/badge/README-%F0%9F%93%9A-blue?style=flat-square"></a>
