@@ -25,7 +25,7 @@
 
     gtag('config', 'G-ZK9F0GE4SE');
   </script>
-  
+
   <style>
     * {
       box-sizing: border-box;
@@ -236,7 +236,8 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
 
     <h1>
-      欢迎，<span id="username" style="color: #ff69b4; font-weight: bold">{{ username }}</span>
+      欢迎
+      <span id="username" style="font-weight: bold;">{{ username }}</span>
       来到Fink的小窝
     </h1>
 
@@ -261,6 +262,8 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
   </div>
 
   <script>
+    window.username = "{{ username }}";
+    window.userRole = "{{ role }}";
     const username = "{{ username }}";
     const socket = io({ withCredentials: true });
 
@@ -290,10 +293,29 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         } catch { }
       }
 
+      let nameColor = "#3b82f6";
+      const adminList = ["admin", "super_admin"];
+      if (data.username === window.username && adminList.includes(window.userRole)) {
+        nameColor = "red";
+      }
+      if (adminList.includes(data.role)) {
+        nameColor = "red";
+      }
+
+      // 身份徽章
+      let badge = "";
+      if (data.role === "super_admin") {
+        badge = `<span style="margin-left: 4px; color: red; font-weight: bold;">👑</span>`;
+      } else if (data.role === "admin") {
+        badge = `<span style="margin-left: 4px; color: orange; font-weight: bold;">🎯</span>`;
+      } else if (data.role === "guest") {
+        badge = `<span style="margin-left: 4px; color: gray; font-weight: bold;">👀</span>`;
+      }
+
       msgDiv.innerHTML = `
   <div style="display: flex; justify-content: space-between; align-items: flex-start;">
     <div style="flex: 1;">
-      <span class="username" style="color:#3b82f6; font-weight:bold;">${data.username}</span>: 
+      <span class="username" style="color:${nameColor}; font-weight:bold;">${data.username}</span>${badge}: 
       ${data.message}
     </div>
     <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
@@ -310,7 +332,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
     socket.on("connect", () => {
       console.log("已连接到服务器");
-      socket.emit("bind_username", { username });
+      socket.emit("bind_username", { username, role: window.userRole });
     });
 
     socket.on("chat_history", (messages) => {
@@ -341,6 +363,9 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     }
 
     function logout() {
+      if (window.username === "游客") {
+        localStorage.removeItem("savedUsername"); // 清除游客名
+      }
       localStorage.removeItem("savedUsername");
       localStorage.removeItem("savedPassword");
       localStorage.setItem("autoLogin", "no");
@@ -398,8 +423,44 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     }
 
 
-    // 页面加载时检查公告
-    window.addEventListener("DOMContentLoaded", checkAnnouncement);
+    // 页面加载时检查公告 并检查身份 若是游客关闭输入栏发送消息的权限
+    window.addEventListener("DOMContentLoaded", () => {
+      checkAnnouncement();
+
+      const role = window.userRole;
+      const nameEl = document.getElementById("username");
+      const badgeEl = document.createElement("span");
+      // 创建徽章块（包含表情 + 文字）
+      badgeEl.style.marginLeft = "6px";
+      badgeEl.style.lineHeight = "1";
+      badgeEl.style.position = "relative";
+
+      // 处理身份颜色和徽章
+      if (role === "super_admin") {
+        nameEl.style.color = "red";
+        badgeEl.innerHTML = '<span style="font-size: 0.9em;">👑</span>';
+      } else if (role === "admin") {
+        nameEl.style.color = "orange";
+        badgeEl.innerHTML = '<span style="font-size: 0.9em;">🎯</span>';
+      } else if (role === "guest") {
+        nameEl.style.color = "gray";
+        badgeEl.innerHTML = '<span style="font-size: 0.9em;">👀</span>';
+      }
+
+      // 添加徽章到用户名后面
+      nameEl.insertAdjacentElement("afterend", badgeEl);
+
+      // 游客禁止发言逻辑
+      if (role === "guest") {
+        const input = document.getElementById("message");
+        const button = document.querySelector("#chat-input button");
+
+        input.disabled = true;
+        input.placeholder = "游客无法发送消息";
+        button.textContent = "注册";
+        button.onclick = () => window.location.href = "/";
+      }
+    });
   </script>
 </body>
 

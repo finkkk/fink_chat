@@ -24,7 +24,7 @@
 
     gtag('config', 'G-ZK9F0GE4SE');
   </script>
-  
+
   <style>
     .logo-box {
       display: flex;
@@ -224,6 +224,7 @@
     <div class="btn-group">
       <button type="button" onclick="register()">注册</button>
       <button type="button" onclick="login()">登录</button>
+      <button type="button" style="background-color: #aab2c1;" onclick="guestLogin()">游客进入</button>
     </div>
 
     <p id="message"></p>
@@ -269,6 +270,15 @@
           messageEl.textContent = "请求失败，请检查服务器";
           console.error(err);
         });
+    }
+
+
+    function guestLogin() {
+      // 清除任何自动登录和记住密码信息
+      localStorage.removeItem("savedPassword");
+      localStorage.setItem("autoLogin", "no");
+      // 跳转到 Flask 的游客登录接口
+      window.location.href = "/guest-login";
     }
 
     function login() {

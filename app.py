@@ -5,8 +5,9 @@ from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
-from config import APP_VERSION, APP_UPDATED
+from config import APP_VERSION, APP_UPDATED, GUEST_USERNAME, ADMIN_USERNAMES, SUPER_ADMIN_USERNAMES
 import json
+
 app = Flask(__name__,static_folder='static')
 app.permanent_session_lifetime = timedelta(days=30)
 
@@ -61,12 +62,39 @@ def login():
     session.permanent = True  # ✅ 添加这行
     return jsonify({'success': True, 'message': '登录成功', 'username': username})
 
+# ====== 游客登录接口 ======
+@app.route('/guest-login')
+def guest_login():
+    session['username'] = GUEST_USERNAME
+    session.permanent = True
+    return redirect('/home')
+
+# ====== 验证权限并分配身份 ======
+
+def get_user_role(username):
+    if username == GUEST_USERNAME:
+        return "guest"
+    elif username in SUPER_ADMIN_USERNAMES:
+        return "super_admin"
+    elif username in ADMIN_USERNAMES:
+        return "admin"
+    else:
+        return "user"
+
+
+
 # ====== 用户主页 ======
 @app.route('/home')
 def user_page():
     if 'username' not in session:
         return redirect('/')
-    return render_template('home.html', username=session['username'], version=APP_VERSION, updated=APP_UPDATED)
+    username = session['username']
+    role = get_user_role(username)  
+    return render_template('home.html',
+                           username=username,
+                           version=APP_VERSION,
+                           updated=APP_UPDATED,
+                           role=role)  # 带上身份
 
 # ====== 退出登录 ======
 @app.route('/logout')
@@ -91,7 +119,8 @@ def handle_connect():
     history = [{
         'username': m.username,
         'message': m.message,
-        'timestamp': m.timestamp.isoformat()
+        'timestamp': m.timestamp.isoformat(),
+        'role': get_user_role(m.username)  
     } for m in messages]
     emit('chat_history', history)
 
@@ -104,7 +133,8 @@ def handle_load_more(data):
     result = [{
         'username': m.username,
         'message': m.message,
-        'timestamp': m.timestamp.isoformat()
+        'timestamp': m.timestamp.isoformat(),
+        'role': get_user_role(m.username) 
     } for m in messages]
     emit('chat_history', result)
 
@@ -123,6 +153,16 @@ def handle_disconnect():
 @socketio.on('send_message')
 def handle_send(data):
     username = user_sid_map.get(request.sid, '匿名用户')
+
+    # 如果是游客，不能发消息
+    if get_user_role(username) == "guest":
+        emit('receive_message', {
+            'username': '系统',
+            'message': '⚠️ 游客无法发送消息，请注册登录。',
+            'timestamp': datetime.utcnow().isoformat()
+        }, room=request.sid)
+        return
+
     message = data.get('message', '').strip()
     if not message:
         return
@@ -132,9 +172,10 @@ def handle_send(data):
     db.session.commit()
 
     emit('receive_message', {
-    'username': username,
-    'message': message,
-    'timestamp': msg_obj.timestamp.isoformat()
+        'username': username,
+        'message': message,
+        'timestamp': msg_obj.timestamp.isoformat(),
+        'role': get_user_role(username)  # 加上这行
 }, broadcast=True)
 
 
