@@ -294,12 +294,23 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       }
 
       let nameColor = "#3b82f6";
-      const adminList = ["admin", "super_admin"];
-      if (data.username === window.username && adminList.includes(window.userRole)) {
+
+      // 当前用户自己是超级管理员 → 红色
+      if (data.username === window.username && window.userRole === "super_admin") {
         nameColor = "red";
       }
-      if (adminList.includes(data.role)) {
+      // 当前用户自己是管理员 → 橙色
+      else if (data.username === window.username && window.userRole === "admin") {
+        nameColor = "orange";
+      }
+      
+      // 如果发言者是超级管理员 → 红色
+      else if (data.role === "super_admin") {
         nameColor = "red";
+      }
+      // 如果发言者是管理员 → 橙色
+      else if (data.role === "admin") {
+        nameColor = "orange";
       }
 
       // 身份徽章
