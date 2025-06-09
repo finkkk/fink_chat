@@ -35,7 +35,7 @@
 
       .container {
         width: 100%;
-        max-width: 90vw;
+        max-width: 580px;
         margin: 0 auto;
         min-height: 100vh;
         padding: 20px 16px 12px;
@@ -44,7 +44,6 @@
         background: white;
         display: flex;
         flex-direction: column;
-        position: relative;
       }
 
       h1 {
@@ -93,6 +92,7 @@
       #chat-box {
         flex: 1;
         overflow-y: auto;
+        max-height: calc(100vh - 240px); /* 保证 chat-box 不被撑出去 */
         border: 1.5px solid #ccc;
         padding: 10px;
         background: #fafafa;
@@ -105,13 +105,7 @@
 
       #chat-input {
         display: flex;
-        position: absolute;
-        bottom: 48px; /* 留出页脚高度 */
-        left: 0;
-        width: 100%;
-        padding: 0 16px;
-        box-sizing: border-box;
-        background: white;
+        margin-bottom: 10px;
       }
 
       #chat-input input[type="text"] {
@@ -153,25 +147,10 @@
           flex: 1;
           overflow-y: auto;
           margin-bottom: 8px;
-          padding-bottom: 90px; /* 留出输入框 + 页脚空间 */
-        }
-      }
-
-      /* ✅ PC端宽度扩展写法 */
-      @media (min-width: 768px) {
-        .container {
-          max-width: 680px;
-        }
-      }
-
-      @media (min-width: 1200px) {
-        .container {
-          max-width: 860px;
         }
       }
 
       #footer {
-        position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
