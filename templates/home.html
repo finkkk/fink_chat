@@ -44,6 +44,7 @@
         background: white;
         display: flex;
         flex-direction: column;
+        position: relative;
       }
 
       h1 {
@@ -104,7 +105,13 @@
 
       #chat-input {
         display: flex;
-        margin-bottom: 10px;
+        position: absolute;
+        bottom: 48px; /* 留出页脚高度 */
+        left: 0;
+        width: 100%;
+        padding: 0 16px;
+        box-sizing: border-box;
+        background: white;
       }
 
       #chat-input input[type="text"] {
@@ -146,6 +153,7 @@
           flex: 1;
           overflow-y: auto;
           margin-bottom: 8px;
+          padding-bottom: 90px; /* 留出输入框 + 页脚空间 */
         }
       }
 
@@ -163,6 +171,7 @@
       }
 
       #footer {
+        position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
