@@ -1,6 +1,7 @@
 # commands.py
 from datetime import datetime
-from config import SYSTEM_USERNAME
+from config import SYSTEM_USERNAME, AI_API_KEY, AI_MODEL, AI_API_URL, AI_MAX_TOKENS, AI_CONTEXT_COUNT
+from openai import OpenAI
 import random
 
 # ======指令处理函数======
@@ -72,6 +73,41 @@ def cmd_testsuper(username, args):
         "style": "success"
     }
 
+# AI调用方法(无上下文)
+client = OpenAI(api_key=AI_API_KEY, base_url=AI_API_URL)
+def cmd_ask(username, args):
+    if not args:
+        return {
+            "username": SYSTEM_USERNAME,
+            "message": "⚠️ 格式：/ask 你想问的内容",
+            "style": "error"
+        }
+
+    prompt = " ".join(args)
+    messages = [
+        {"role": "system", "content": "你是一个乐于助人而且幽默的 AI 助手"},
+        {"role": "user", "content": prompt}
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model=AI_MODEL,
+            messages=messages,
+            max_tokens=AI_MAX_TOKENS
+        )
+        return {
+            "username": SYSTEM_USERNAME,
+            "message": response.choices[0].message.content,
+            "role": "system"
+        }
+    except Exception as e:
+        return {
+            "username": SYSTEM_USERNAME,
+            "message": f"❌ AI 调用失败：{str(e)}",
+            "style": "error",
+            "role": "system"
+        }
+
 # 指令注册字典
 AVAILABLE_COMMANDS = {
     "/help": {
@@ -106,7 +142,6 @@ AVAILABLE_COMMANDS = {
         "permission": ["user", "admin", "super_admin"]
     },
 
-
     "/testadmin": {
         "desc": "管理员测试用指令",
         "func": cmd_testadmin,
@@ -122,6 +157,15 @@ AVAILABLE_COMMANDS = {
         "save": False,
         "permission": ["super_admin"]
     },
+
+    "/ask": {
+        "desc": f"调用 AI 提问（模型: {AI_MODEL}，不读上下文，最多 {AI_MAX_TOKENS} tokens）",
+        "func": cmd_ask,
+        "broadcast": True,
+        "save": True,
+        "permission": ["user", "admin", "super_admin"],
+        "color": "#22c55e"  # 💚 自定义绿色
+    },
 }
 
 def handle_command(command, args, username, role="user"):
@@ -132,8 +176,8 @@ def handle_command(command, args, username, role="user"):
             'message': f'❓ 未知指令: {command}',
             'style': 'error',
             'broadcast': True,
-            'save': False
-          
+            'save': False,
+            'color': '#ef4444'  # 错误指令默认红色
         }
 
     # ===== 权限检查 =====
@@ -144,14 +188,19 @@ def handle_command(command, args, username, role="user"):
             'message': f'⛔ 你没有权限使用该指令: {command}',
             'style': 'error',
             'broadcast': False,
-            'save': False
-        
+            'save': False,
+            'color': '#ef4444'  # 没权限也是红色
         }
 
+    # ===== 调用对应函数 =====
     if command == "/help":
         result = cmd_conf['func'](username, args, role=role)
     else:
         result = cmd_conf['func'](username, args)
+
+    # 添加统一结构字段
     result['broadcast'] = cmd_conf.get('broadcast', True)
     result['save'] = cmd_conf.get('save', False)
+    result['color'] = result.get('color', cmd_conf.get('color', '#7c3aed'))  # 指令可配置，默认紫色
+
     return result

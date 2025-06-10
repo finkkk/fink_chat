@@ -212,29 +212,30 @@ def handle_send(data):
     if not message:
         return
 
-    # ===== 判断是否是指令 =====
+     # ===== 判断是否是指令 =====
     if message.startswith('/'):
         parts = message.split()
         command = parts[0]
         args = parts[1:]
+
+        # 执行指令
         result = handle_command(command, args, username, role=role)
         result['role'] = 'system'
         result['timestamp'] = datetime.utcnow().isoformat()
 
-
         # 保存到数据库（如果需要）
         if result.get('save'):
-            msg_obj = Message(username=SYSTEM_USERNAME, message=result['message'], role='system')  # 指令标记 system
+            msg_obj = Message(username=SYSTEM_USERNAME, message=result['message'], role='system')
             db.session.add(msg_obj)
             db.session.commit()
             result['timestamp'] = msg_obj.timestamp.isoformat()
 
-        # 广播 or 仅给自己
+        # 广播 or 回给自己
         if result.get('broadcast'):
             emit('receive_message', result, broadcast=True)
         else:
             emit('receive_message', result, room=request.sid)
-        return  # ← 很重要：指令逻辑处理完直接返回
+        return
 
     # ===== 普通消息处理 =====
     msg_obj = Message(username=username, message=message, role=role)

@@ -210,6 +210,12 @@
     #announcement-modal button.confirm-btn:hover {
       background: #d48806;
     }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
@@ -290,6 +296,25 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     </div>
   </div>
 
+
+
+  <div id="ai-warning" style="
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f87171;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  ">
+    🤖 请等待 AI 思考完毕！
+  </div>
   <script>
     const knownUsernames = new Set(); // 所有已知用户名（用于判断 @谁 是否是有效用户）
     let socket = null;
@@ -301,6 +326,26 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     let messageOffset = 0; // 当前历史消息加载偏移量
     const limitPerLoad = 10; // 每次最多加载多少条历史记录
     let validCommands = new Set(); // 可用指令合集
+
+
+    let thinkingMsgElement = null;  // 保存正在思考的消息 DOM
+
+    // 插入 “AI思考中”
+    function insertThinkingMessage() {
+      if (thinkingMsgElement) return;  // 避免重复添加
+
+      const tempData = {
+        username: "系统",
+        message: "🤔 正在思考中...",
+        role: "system",
+        timestamp: new Date().toISOString(),
+        style: "pending"
+      };
+
+      const tempDiv = appendMessage(tempData);
+      thinkingMsgElement = tempDiv;
+    }
+
 
     // 初始化 Socket.IO 并设置事件监听
     function initSocket() {
@@ -327,9 +372,15 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         }
       });
 
-      // 接收实时消息
       socket.on("receive_message", (data) => {
-        console.log("📦 收到消息：", data);  // ← 加在这里！
+        if (thinkingMsgElement && data.role === "system") {
+          thinkingMsgElement.remove(); // 删除“思考中”原始块
+          thinkingMsgElement = null;
+
+          appendMessage(data); // 用真实消息重新渲染，走完整样式逻辑
+          return;
+        }
+
         appendMessage(data);
         playMentionSound(data);
       });
@@ -359,7 +410,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
           let color = "#3b82f6"; // 默认蓝色
           let badge = "";
 
-          if ((role || '').trim() === "guest"){
+          if ((role || '').trim() === "guest") {
             color = "gray";           // 强制灰色
             badge = "👀";
           } else if (isSelf) {
@@ -499,7 +550,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       <span class="username" style="color:${nameColor}; font-weight:bold; cursor: pointer;" onclick="atUser('${data.username}')">
         ${data.username}
       </span>${badge}: 
-      <span style="color: inherit;">
+      <span style="color: ${data.color || 'inherit'};">
         ${highlightMentions(data.message || '').replace(/\n/g, '<br>')}
       </span>
     </div>
@@ -534,6 +585,8 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       if (data.role !== "system") {
         highlightIfMentioned(msgDiv, data);
       }
+
+      return msgDiv; // 返回新建的元素
     }
     // 点击用户名时自动补齐 @用户名 到输入栏中
     function atUser(name) {
@@ -550,10 +603,32 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       }
     }
 
-    // 发送当前输入栏的消息
+    // 显示自定义 AI 提示
+    function showAIWarning() {
+      const warnEl = document.getElementById("ai-warning");
+      if (!warnEl) return;
+      warnEl.style.display = "block";
+
+      // 自动隐藏（1.8 秒后）
+      setTimeout(() => {
+        warnEl.style.display = "none";
+      }, 1800);
+    }
+
     function sendMessage() {
       const msg = messageInput.value.trim();
       if (!msg) return;
+
+      // 防止连续 AI 请求（前端限制）
+      if ((msg.startsWith("/ask") || msg.startsWith("/ai")) && thinkingMsgElement) {
+        showAIWarning();
+        return;
+      }
+
+      if (msg.startsWith("/ask") || msg.startsWith("/ai")) {
+        insertThinkingMessage();
+      }
+
       socket.emit("send_message", { message: msg });
       messageInput.value = "";
     }

@@ -6,3 +6,5 @@ eventlet
 python-socketio
 python-engineio
 werkzeug
+openai
+python-dotenv
