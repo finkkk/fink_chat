@@ -78,15 +78,23 @@ def login():
 # ====== 游客登录接口 ======
 @app.route('/guest-login')
 def guest_login():
-    # 游客模式登录
-    session['username'] = GUEST_USERNAME
-    session.permanent = True
-    return redirect('/home')
+    # 获取当前在线的所有游客名
+    all_online_guests = {name for name in user_sid_map.values() if name.startswith("游客")}
+
+    # 找一个未使用的编号
+    for i in range(1, 1000):
+        guest_name = f"游客#{i}"
+        if guest_name not in all_online_guests:
+            session['username'] = guest_name
+            session.permanent = True
+            return redirect('/home')
+
+    return "游客爆满，请稍后再试", 500
 
 
 # ====== 验证权限并分配身份 ======
 def get_user_role(username):
-    if username == GUEST_USERNAME:
+    if username.startswith("游客"):  # 所有游客#x 都识别为 guest
         return "guest"
     elif username in SUPER_ADMIN_USERNAMES:
         return "super_admin"
@@ -210,8 +218,9 @@ def handle_send(data):
         command = parts[0]
         args = parts[1:]
         result = handle_command(command, args, username, role=role)
-        result['timestamp'] = datetime.utcnow().isoformat()
         result['role'] = 'system'
+        result['timestamp'] = datetime.utcnow().isoformat()
+
 
         # 保存到数据库（如果需要）
         if result.get('save'):

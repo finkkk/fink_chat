@@ -250,7 +250,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     <!-- 在线用户列表弹窗 -->
     <div id="online-modal"
       style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-  z-index:999; background:#f7e9e9; border:1px solid #ccc; border-radius:8px; padding:16px 20px; max-width:300px; width:90%; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+  z-index:999; background:#ebeaea; border:1px solid #ccc; border-radius:8px; padding:16px 20px; max-width:300px; width:90%; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size:16px; color:#333;">实时在线用户列表</strong>
         <button onclick="closeOnlineList()"
@@ -329,14 +329,15 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       // 接收实时消息
       socket.on("receive_message", (data) => {
+        console.log("📦 收到消息：", data);  // ← 加在这里！
         appendMessage(data);
         playMentionSound(data);
       });
 
       // 更新显示在线用户列表人数
       socket.on("online_users", (userList) => {
-        // 排除游客
-        const filtered = userList.filter(u => u.role !== "guest");
+
+        const filtered = userList;
 
         // 排序规则
         filtered.sort((a, b) => {
@@ -355,16 +356,24 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
           const isSelf = username === window.username;
           const label = isSelf ? "（你）" : "";
 
-          let color = "#3b82f6"; // 普通用户字体色
-          if (isSelf) color = "#10b981"; // 自己绿色
-          else if (role === "super_admin") color = "red";
-          else if (role === "admin") color = "orange";
+          let color = "#3b82f6"; // 默认蓝色
           let badge = "";
-          if (role === "super_admin") badge = "👑";
-          else if (role === "admin") badge = "🎯";
+
+          if ((role || '').trim() === "guest"){
+            color = "gray";           // 强制灰色
+            badge = "👀";
+          } else if (isSelf) {
+            color = "#10b981";        // 自己绿色
+          } else if (role === "super_admin") {
+            color = "red";
+            badge = "👑";
+          } else if (role === "admin") {
+            color = "orange";
+            badge = "🎯";
+          }
           return `
             <div style="
-              background: #d5d1d1;
+              background: #ffffff;
               border-radius: 12px;
               padding: 10px 14px;
               margin-bottom: 10px;
@@ -422,6 +431,11 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     // 渲染并插入单条消息，prepend=true 表示向上插入（历史记录）
     function appendMessage(data, prepend = false) {
 
+      // ✨ 标准化 role 字段，去除空格和换行
+      if (data.role && typeof data.role === "string") {
+        data.role = data.role.trim();
+      }
+
       const msgDiv = document.createElement("div");
 
       // 将 ISO 格式时间转换成本地时间字符串
@@ -444,7 +458,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       // 如果发言者是系统身份
       if (data.role === "system") {
-        nameColor = "red";
+        nameColor = "purple";
       }
 
       // 当前用户自己是超级管理员 → 红色
@@ -469,7 +483,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       // 身份徽章
       let badge = "";
       if (data.role === "system") {
-        badge = `<span style="margin-left: 4px; color: red; font-weight: bold;">🛠️</span>`;
+        badge = `<span style="margin-left: 4px; color: purple; font-weight: bold;">🪄</span>`;
       } else if (data.role === "super_admin") {
         badge = `<span style="margin-left: 4px; color: red; font-weight: bold;">👑</span>`;
       } else if (data.role === "admin") {
@@ -480,14 +494,18 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       // 构建消息 HTML 内容
       msgDiv.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div style="flex: 1;">
-          <span class="username" style="color:${nameColor}; font-weight:bold;cursor: pointer;" onclick="atUser('${data.username}')">${data.username}</span>${badge}: 
-          ${highlightMentions(data.message || '').replace(/\n/g, '<br>')}
-        </div>
-        <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
-      </div>
-    `;
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 1;">
+      <span class="username" style="color:${nameColor}; font-weight:bold; cursor: pointer;" onclick="atUser('${data.username}')">
+        ${data.username}
+      </span>${badge}: 
+      <span style="color: inherit;">
+        ${highlightMentions(data.message || '').replace(/\n/g, '<br>')}
+      </span>
+    </div>
+    <span style="font-size:12px; color:#aaa; white-space: nowrap; margin-left: 8px;">${timeStr}</span>
+  </div>
+`;
       // 若输入的是错误指令则执行的css样式
       if (data.style === "error") {
         msgDiv.style.color = "#ef4444"; // 红色字体
@@ -513,7 +531,9 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         chatBox.scrollTop = chatBox.scrollHeight;
       }
       // 如果该消息是 @ 自己的，高亮提示
-      highlightIfMentioned(msgDiv, data);
+      if (data.role !== "system") {
+        highlightIfMentioned(msgDiv, data);
+      }
     }
     // 点击用户名时自动补齐 @用户名 到输入栏中
     function atUser(name) {

@@ -15,6 +15,7 @@ def cmd_help(username, args, role="user"):
     return {
         "username": SYSTEM_USERNAME,
         "message": "\n".join(lines)
+      
     }
 
 # 摇骰子
@@ -23,6 +24,7 @@ def cmd_roll(username, args):
     return {
         'username': SYSTEM_USERNAME,
         'message': f'🎲 {username} 掷出了一个 {dice}！'
+  
     }
 
 # 查询时间
@@ -31,6 +33,7 @@ def cmd_time(username, args):
     return {
         'username': SYSTEM_USERNAME,
         'message': f'🕐 当前服务器时间：{now}'
+     
     }
 
 # 测试@指令
@@ -40,6 +43,7 @@ def cmd_hit(username, args):
             "username": SYSTEM_USERNAME,
             "message": "⚠️ 请使用格式：/hit @某人",
             "style": "error"
+      
         }
 
     target = args[0]
@@ -48,6 +52,7 @@ def cmd_hit(username, args):
     return {
         "username": SYSTEM_USERNAME,
         "message": f'😛 {username} 给了 {target} {action}！'
+ 
     }
 
 # 测试指令 仅管理员可用
@@ -56,6 +61,7 @@ def cmd_testadmin(username, args):
         "username": SYSTEM_USERNAME,
         "message": f'🎯 管理员 {username} 发起了一次权限测试！',
         "style": "success"
+      
     }
 
 # 测试指令 仅超级管理员可用
@@ -127,6 +133,7 @@ def handle_command(command, args, username, role="user"):
             'style': 'error',
             'broadcast': True,
             'save': False
+          
         }
 
     # ===== 权限检查 =====
@@ -138,6 +145,7 @@ def handle_command(command, args, username, role="user"):
             'style': 'error',
             'broadcast': False,
             'save': False
+        
         }
 
     if command == "/help":
