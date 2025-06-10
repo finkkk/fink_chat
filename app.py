@@ -223,23 +223,8 @@ def handle_send(data):
             'username': username,
             'message': message,
             'timestamp': msg_obj.timestamp.isoformat(),
-            'role': role,
-            'isAIRequest': True  # 标记为AI请求
+            'role': role
         }, broadcast=True)
-
-        # 处理AI指令
-        question = ' '.join(message.split()[1:])  # 提取问题部分
-        ai_response = get_ai_response(question)  # 获取AI回复
-        
-        # 发送AI回复
-        emit('receive_message', {
-            'username': SYSTEM_USERNAME,
-            'message': ai_response,
-            'timestamp': datetime.utcnow().isoformat(),
-            'role': 'system',
-            'isAIResponse': True  # 标记为AI回复
-        }, broadcast=True)
-        return
     
 
      # ===== 判断是否是指令 =====
