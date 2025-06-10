@@ -212,6 +212,36 @@ def handle_send(data):
     if not message:
         return
 
+
+        # ===== AI指令特殊处理 =====
+    if message.startswith('/ask'):
+        # 保存并广播用户原始指令
+        msg_obj = Message(username=username, message=message, role=role)
+        db.session.add(msg_obj)
+        db.session.commit()
+        emit('receive_message', {
+            'username': username,
+            'message': message,
+            'timestamp': msg_obj.timestamp.isoformat(),
+            'role': role,
+            'isAIRequest': True  # 标记为AI请求
+        }, broadcast=True)
+
+        # 处理AI指令
+        question = ' '.join(message.split()[1:])  # 提取问题部分
+        ai_response = get_ai_response(question)  # 获取AI回复
+        
+        # 发送AI回复
+        emit('receive_message', {
+            'username': SYSTEM_USERNAME,
+            'message': ai_response,
+            'timestamp': datetime.utcnow().isoformat(),
+            'role': 'system',
+            'isAIResponse': True  # 标记为AI回复
+        }, broadcast=True)
+        return
+    
+
      # ===== 判断是否是指令 =====
     if message.startswith('/'):
         parts = message.split()

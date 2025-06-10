@@ -288,8 +288,6 @@
         transform: translate(-50%, -50%);
       }
     }
-
-    
   </style>
 </head>
 
@@ -563,6 +561,25 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       }
 
       const msgDiv = document.createElement("div");
+
+
+
+      // AI指令消息特殊样式
+      if (data.isAIRequest) {
+        msgDiv.className = 'ai-request-message';
+        msgDiv.innerHTML = `
+      <span class="user">${data.username}</span>
+      <span class="command">${data.message}</span>
+    `;
+      }
+      // AI回复样式
+      else if (data.isAIResponse) {
+        msgDiv.className = 'ai-response-message';
+        msgDiv.innerHTML = `
+      <span class="bot">${data.username}</span>
+      <span class="content">${data.message}</span>
+    `;
+      }
 
       // 将 ISO 格式时间转换成本地时间字符串
       let timeStr = "";
