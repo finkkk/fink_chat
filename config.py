@@ -6,8 +6,8 @@ load_dotenv()  # 加载 .env 配置
 
 
 # ===== APP 配置 =====
-APP_VERSION = "v1.0.5"
-APP_UPDATED = "2025-06-09"
+APP_VERSION = "v1.0.6"
+APP_UPDATED = "2025-06-10"
 
 
 # ===== AI 配置 =====
