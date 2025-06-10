@@ -223,7 +223,7 @@ def handle_send(data):
         result['role'] = 'system'
         result['timestamp'] = datetime.utcnow().isoformat()
 
-        # 保存到数据库（如果需要）
+        # 保存到数据库
         if result.get('save'):
             msg_obj = Message(username=SYSTEM_USERNAME, message=result['message'], role='system')
             db.session.add(msg_obj)

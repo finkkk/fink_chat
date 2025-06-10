@@ -125,7 +125,11 @@
 
     #chat-input {
       display: flex;
+      width: 100%;
+      /* 确保占满父容器宽度 */
       margin-bottom: 10px;
+      gap: 0;
+      /* 移除子元素间隙 */
     }
 
     #chat-input input[type="text"] {
@@ -211,11 +215,81 @@
       background: #d48806;
     }
 
+
+
+
+    /* 思考中消息样式 */
+    .thinking-message {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 5px;
+    }
+
+    /* 蓝色旋转动画 */
+    .thinking-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #3b82f6;
+      /* 蓝色 */
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
       }
     }
+
+    /* 消息内容布局 */
+    .message-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+
+    /* 在现有样式中添加 */
+    @keyframes slideIn {
+      from {
+        transform: translateY(10px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .new-message {
+      animation: slideIn 0.3s ease-out forwards;
+    }
+
+
+
+    /* 在线列表弹窗 */
+    #online-modal {
+      animation: modalFadeIn 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    
   </style>
 </head>
 
@@ -313,7 +387,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 9999;
   ">
-    🤖 请等待 AI 思考完毕！
+    🤖 请等待 AI 思考完毕再发送！
   </div>
   <script>
     const knownUsernames = new Set(); // 所有已知用户名（用于判断 @谁 是否是有效用户）
@@ -336,10 +410,11 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       const tempData = {
         username: "系统",
-        message: "🤔 正在思考中...",
+        message: "正在思考中...",
         role: "system",
-        timestamp: new Date().toISOString(),
-        style: "pending"
+        timestamp: "",
+        isAI: true,  // 新增标记，与AI指令保持一致 
+        isThinking: true, // 思考中标记
       };
 
       const tempDiv = appendMessage(tempData);
@@ -564,14 +639,40 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
       // 如果是系统指令消息
       if (data.role === "system") {
+        // 根据起始的徽章判断是否为AI指令
+        const isAI = data.message.startsWith("🤖") || data.isAI; // 直接判断是否以🤖开头  isAI为 AI思考中的标识
+
+        // 在appendMessage中：
+        if (data.isThinking) {
+          msgDiv.innerHTML = `
+  <div class="thinking-message">
+      <div class="thinking-spinner"></div>
+      ${data.message}
+  </div>`;
+        }
+
         msgDiv.style.background = "#e0f2fe";            // 更明显的浅蓝背景
         msgDiv.style.borderRadius = "4px";
         msgDiv.style.padding = "10px 0px";
         msgDiv.style.margin = "4px 0";
-        msgDiv.style.color = "#1e3a8a";                 // 深蓝字体，更醒目
         msgDiv.style.fontStyle = "normal";              // 不用斜体了
         msgDiv.style.width = "100%";                    // 撑满宽度
         msgDiv.style.boxSizing = "border-box";          // 包含 padding
+
+        // 颜色方案优化（根据最新需求调整）#1e3a8a
+        msgDiv.style.color = isAI ? '#7c3aed' : '#00b06d'; // AI紫色/默认绿色
+        msgDiv.style.borderLeft = isAI ? '3px solid #7c3aed' : '3px solid #00b06d'; // 左侧边框强化区分
+      }
+
+
+      // 添加动画类（仅对新消息）
+      if (!prepend) {
+        msgDiv.classList.add('new-message');
+
+        // 动画结束后移除类（避免影响布局计算）
+        msgDiv.addEventListener('animationend', () => {
+          msgDiv.classList.remove('new-message');
+        }, { once: true });
       }
 
       // 插入到消息框中
@@ -618,6 +719,13 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     function sendMessage() {
       const msg = messageInput.value.trim();
       if (!msg) return;
+
+
+      // 检查是否正在思考中（包括AI思考和其他指令）
+      if (thinkingMsgElement) {
+        showAIWarning();
+        return;
+      }
 
       // 防止连续 AI 请求（前端限制）
       if ((msg.startsWith("/ask") || msg.startsWith("/ai")) && thinkingMsgElement) {

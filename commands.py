@@ -60,8 +60,7 @@ def cmd_hit(username, args):
 def cmd_testadmin(username, args):
     return {
         "username": SYSTEM_USERNAME,
-        "message": f'🎯 管理员 {username} 发起了一次权限测试！',
-        "style": "success"
+        "message": f'🎯 管理员 {username} 发起了一次权限测试！'
       
     }
 
@@ -69,8 +68,7 @@ def cmd_testadmin(username, args):
 def cmd_testsuper(username, args):
     return {
         "username": SYSTEM_USERNAME,
-        "message": f'👑 超级管理员 {username} 模拟执行了关机操作。',
-        "style": "success"
+        "message": f'👑 超级管理员 {username} 模拟执行了关机操作。'
     }
 
 # AI调用方法(无上下文)
@@ -97,7 +95,7 @@ def cmd_ask(username, args):
         )
         return {
             "username": SYSTEM_USERNAME,
-            "message": response.choices[0].message.content,
+             "message": f"🤖{response.choices[0].message.content}",  # 添加AI徽章
             "role": "system"
         }
     except Exception as e:
@@ -164,7 +162,6 @@ AVAILABLE_COMMANDS = {
         "broadcast": True,
         "save": True,
         "permission": ["user", "admin", "super_admin"],
-        "color": "#22c55e"  # 💚 自定义绿色
     },
 }
 
@@ -175,9 +172,9 @@ def handle_command(command, args, username, role="user"):
             'username': SYSTEM_USERNAME,
             'message': f'❓ 未知指令: {command}',
             'style': 'error',
+            'is_ai_command': False,  # 报错属于非AI指令
             'broadcast': True,
-            'save': False,
-            'color': '#ef4444'  # 错误指令默认红色
+            'save': False
         }
 
     # ===== 权限检查 =====
@@ -188,8 +185,7 @@ def handle_command(command, args, username, role="user"):
             'message': f'⛔ 你没有权限使用该指令: {command}',
             'style': 'error',
             'broadcast': False,
-            'save': False,
-            'color': '#ef4444'  # 没权限也是红色
+            'save': False
         }
 
     # ===== 调用对应函数 =====
@@ -198,9 +194,10 @@ def handle_command(command, args, username, role="user"):
     else:
         result = cmd_conf['func'](username, args)
 
-    # 添加统一结构字段
-    result['broadcast'] = cmd_conf.get('broadcast', True)
-    result['save'] = cmd_conf.get('save', False)
-    result['color'] = result.get('color', cmd_conf.get('color', '#7c3aed'))  # 指令可配置，默认紫色
+    # 添加统一字段
+    result.update({
+        'broadcast': cmd_conf.get('broadcast', True),
+        'save': cmd_conf.get('save', False)
+    })
 
     return result
