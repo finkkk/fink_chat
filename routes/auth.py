@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
 from config import GUEST_USERNAME
+from session_state import user_sid_map, online_users
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -38,8 +39,6 @@ def login():
 # ====== 游客登录接口 ======
 @auth_bp.route("/guest-login")
 def guest_login():
-    from app import user_sid_map
-
     # 获取当前在线的所有游客名
     all_online_guests = {
         name for name in user_sid_map.values() if name.startswith(GUEST_USERNAME)

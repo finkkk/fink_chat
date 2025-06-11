@@ -1,0 +1,254 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  /* 占满全屏 */
+  overflow: hidden;
+  /* 防止滚动条 */
+}
+
+.container {
+  width: 100%;
+  max-width: 580px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 20px 16px 12px;
+  box-shadow: none;
+  border-radius: 10px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  text-align: center;
+  margin: 0 0 10px;
+  color: #333;
+  font-size: 22px;
+}
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#load-more {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#load-more:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+#online-count-btn {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#logout {
+  padding: 6px 7px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#logout img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+#chat-box {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+  /* 保证 chat-box 不被撑出去 */
+  border: 1.5px solid #ccc;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+
+#chat-input {
+  display: flex;
+  width: 100%;
+  /* 确保占满父容器宽度 */
+  margin-bottom: 10px;
+  gap: 0;
+  /* 移除子元素间隙 */
+}
+
+#chat-input input[type="text"] {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  border: 1.5px solid #ccc;
+  border-radius: 6px 0 0 6px;
+  outline: none;
+}
+
+#chat-input button {
+  padding: 10px 16px;
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#chat-input button:hover {
+  background: #2563eb;
+}
+
+@media (max-width: 480px) {
+  .container {
+    height: 95vh;
+    border-radius: 0;
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  #chat-box {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 8px;
+  }
+}
+
+#footer {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  font-size: 13px;
+  color: #888;
+  background: #ffffff;
+  text-align: center;
+  padding: 12px 0;
+  border-top: 1px solid #ffffff;
+  z-index: 99;
+}
+
+#footer a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+#footer a:hover {
+  text-decoration: underline;
+}
+
+#announcement-modal button.confirm-btn {
+  margin-top: 12px;
+  padding: 6px 12px;
+  border: none;
+  background: #faad14;
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#announcement-modal button.confirm-btn:hover {
+  background: #d48806;
+}
+
+/* 思考中消息样式 */
+.thinking-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 5px;
+}
+
+/* 蓝色旋转动画 */
+.thinking-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #3b82f6;
+  /* 蓝色 */
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 消息内容布局 */
+.message-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* 在现有样式中添加 */
+@keyframes slideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.new-message {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* 在线列表弹窗 */
+#online-modal {
+  animation: modalFadeIn 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}

@@ -6,12 +6,7 @@ from models import db, Message
 from config import SYSTEM_USERNAME
 from commands import handle_command
 from routes.view import get_user_role
-
-# ====== Socket.IO 聊天逻辑 ======
-# 保存 socket.id 与用户名的映射
-user_sid_map = {}
-# 实时在线用户列表
-online_users = set()
+from session_state import user_sid_map, online_users
 
 
 # 获取用户身份的方法

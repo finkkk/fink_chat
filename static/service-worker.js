@@ -2,9 +2,9 @@ const CACHE_NAME = "fink-chat-cache-v1";
 const urlsToCache = [
   "/",
   "/home",
-  "/static/icon.ico",
-  "/static/icon_192.webp",
-  "/static/icon_512.webp"
+  "/static/assets/img/icon.ico",
+  "/static/assets/img/icon_192.webp",
+  "/static/assets/img/icon_512.webp"
 ];
 
 self.addEventListener("install", (event) => {
