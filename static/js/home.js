@@ -205,11 +205,34 @@ function appendMessage(data, prepend = false) {
 
   const msgDiv = document.createElement("div");
 
+  // 若是查询时间的指令就自动计算UTC加上本地时区
+  if (
+    data.message.startsWith("🕐") &&
+    data.role === "system" &&
+    data.timestamp
+  ) {
+    const local = new Date(data.timestamp);
+    const timeStr = local.toLocaleString(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    data.message += ` ${timeStr}`;
+  }
+
   // 将 ISO 格式时间转换成本地时间字符串
   let timeStr = "";
   if (data.timestamp) {
     try {
-      const local = new Date(data.timestamp + "Z");
+      let rawTime = data.timestamp || "";
+      if (rawTime && !rawTime.endsWith("Z") && !rawTime.includes("+")) {
+        rawTime += "Z"; // 仅当无时区时补
+      }
+      const local = new Date(rawTime);
       timeStr = local.toLocaleString(undefined, {
         year: "numeric",
         month: "numeric",
@@ -331,8 +354,6 @@ function sendMessage(msgFromBtn = null) {
   const msg = msgFromBtn || messageInput.value.trim();
   if (!msg) return;
 
-
-
   // 检查是否正在思考中（包括AI思考和其他指令）
   if (thinkingMsgElement) {
     showAIWarning();
@@ -350,10 +371,10 @@ function sendMessage(msgFromBtn = null) {
   }
 
   socket.emit("send_message", { message: msg });
-    // 如果是按钮传的值，就不清空输入框
-    if (!msgFromBtn) {
-      messageInput.value = "";
-    }
+  // 如果是按钮传的值，就不清空输入框
+  if (!msgFromBtn) {
+    messageInput.value = "";
+  }
 }
 
 // 退出登录，清除缓存，跳转 logout
@@ -501,3 +522,13 @@ document.addEventListener("click", (e) => {
     toolIcon.classList.remove("rotated");
   }
 });
+
+function sendToolCommand(cmd) {
+  sendMessage(cmd);
+  closeToolBar();
+}
+
+function closeToolBar() {
+  document.getElementById("tool-bar").style.display = "none";
+  toolIcon.classList.toggle("rotated", false);
+}

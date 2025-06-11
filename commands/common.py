@@ -1,6 +1,6 @@
 # commands/common.py
 import random
-from datetime import datetime
+from datetime import datetime,timezone
 from config import SYSTEM_USERNAME
 from .admin import ADMIN_COMMANDS
 from .ai import AI_COMMANDS
@@ -30,8 +30,12 @@ def cmd_roll(username, args):
 
 # 查询时间
 def cmd_time(username, args):
-    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    return {"username": SYSTEM_USERNAME, "message": f"🕐 当前服务器时间：{now}"}
+    now = datetime.now(timezone.utc)
+    return {
+        "username": SYSTEM_USERNAME,
+        "message": "🕐 当前时间：",
+        "role": "system"
+    }
 
 
 # 趣味交互指令

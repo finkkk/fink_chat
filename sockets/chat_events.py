@@ -1,7 +1,7 @@
 # sockets/chat_events.py
 from flask import request
 from flask_socketio import emit
-from datetime import datetime
+from datetime import datetime,timezone
 from models import db, Message
 from config import SYSTEM_USERNAME
 from commands import handle_command
@@ -98,7 +98,7 @@ def register_chat_events(socketio):
                 {
                     "username": SYSTEM_USERNAME,
                     "message": "⚠️ 游客无法发送消息，请注册登录。",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
                 room=request.sid,
             )
@@ -134,7 +134,7 @@ def register_chat_events(socketio):
             # 执行指令
             result = handle_command(command, args, username, role=role)
             result["role"] = "system"
-            result["timestamp"] = datetime.utcnow().isoformat()
+            result["timestamp"] = datetime.now(timezone.utc).isoformat()
 
             # 保存到数据库
             if result.get("save"):
@@ -144,6 +144,9 @@ def register_chat_events(socketio):
                 db.session.add(msg_obj)
                 db.session.commit()
                 result["timestamp"] = msg_obj.timestamp.isoformat()
+            else:
+                # 没保存的也统一加 timestamp（兜底）
+                result.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
 
             # 广播 or 回给自己
             if result.get("broadcast"):

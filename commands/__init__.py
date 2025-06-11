@@ -3,6 +3,7 @@ from .common import COMMON_COMMANDS
 from .admin  import ADMIN_COMMANDS
 from .ai     import AI_COMMANDS
 from config  import SYSTEM_USERNAME
+from datetime import datetime,timezone
 
 # ====== 合并所有命令 ======
 AVAILABLE_COMMANDS = {
@@ -46,5 +47,7 @@ def handle_command(command, args, username, role="user"):
         'broadcast': cmd_conf.get('broadcast', True),
         'save': cmd_conf.get('save', False)
     })
+
+    result.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
 
     return result
