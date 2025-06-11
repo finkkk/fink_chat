@@ -327,9 +327,11 @@ function showAIWarning() {
   }, 1800);
 }
 
-function sendMessage() {
-  const msg = messageInput.value.trim();
+function sendMessage(msgFromBtn = null) {
+  const msg = msgFromBtn || messageInput.value.trim();
   if (!msg) return;
+
+
 
   // 检查是否正在思考中（包括AI思考和其他指令）
   if (thinkingMsgElement) {
@@ -348,7 +350,10 @@ function sendMessage() {
   }
 
   socket.emit("send_message", { message: msg });
-  messageInput.value = "";
+    // 如果是按钮传的值，就不清空输入框
+    if (!msgFromBtn) {
+      messageInput.value = "";
+    }
 }
 
 // 退出登录，清除缓存，跳转 logout
@@ -480,7 +485,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-
 const toggleBtn = document.getElementById("tool-toggle-btn");
 const toolBar = document.getElementById("tool-bar");
 const toolIcon = document.getElementById("tool-icon");
@@ -497,38 +501,3 @@ document.addEventListener("click", (e) => {
     toolIcon.classList.remove("rotated");
   }
 });
-
-
-
-
-// 打开投票弹窗
-function openPollModal() {
-  document.getElementById("poll-overlay").style.display = "block";
-  document.getElementById("poll-modal").style.display = "block";
-  document.body.style.overflow = "hidden";
-}
-// 关闭投票弹窗
-function closePollModal() {
-  document.getElementById("poll-overlay").style.display = "none";
-  document.getElementById("poll-modal").style.display = "none";
-  document.body.style.overflow = "";
-}
-// 提交创建投票
-function submitPoll() {
-  const title = document.getElementById("poll-title").value.trim();
-  const options = document.getElementById("poll-options").value.trim().split("\n").filter(opt => opt);
-
-  if (!title || options.length < 2) {
-    alert("请输入标题和至少两个选项！");
-    return;
-  }
-
-  // Socket 发送事件
-  socket.emit("create_poll", {
-    question: title,
-    options: options,
-  });
-
-  closePollModal();
-}
-
