@@ -588,7 +588,7 @@ document.getElementById("message").addEventListener("keydown", (e) => {
   if (
     e.key === "Backspace" &&
     input.value.startsWith("/ask ") &&
-    input.selectionStart <= 6 // 光标在 /ask 后面位置
+    input.selectionStart <= 5 // 光标在 /ask 后面位置
   ) {
     // 阻止默认删除行为
     e.preventDefault();
