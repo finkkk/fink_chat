@@ -565,7 +565,7 @@ function renderAskTag() {
   tag.id = "ask-tag";
   tag.innerHTML = "🤖 <strong style='color:#1e3a8a;'>提问AI</strong>";
   tag.style.position = "absolute";
-  tag.style.left = "50px";
+  tag.style.left = "53px";
   tag.style.top = "50%";
   tag.style.transform = "translateY(-50%)";
   tag.style.background = "#e0e7ff";
