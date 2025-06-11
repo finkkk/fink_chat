@@ -30,7 +30,6 @@ def cmd_roll(username, args):
 
 # 查询时间
 def cmd_time(username, args):
-    now = datetime.now(timezone.utc)
     return {
         "username": SYSTEM_USERNAME,
         "message": "🕐 当前时间：",

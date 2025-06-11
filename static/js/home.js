@@ -374,6 +374,12 @@ function sendMessage(msgFromBtn = null) {
   // 如果是按钮传的值，就不清空输入框
   if (!msgFromBtn) {
     messageInput.value = "";
+
+    // 清除 AI 卡片
+    const tag = document.getElementById("ask-tag");
+    if (tag) tag.remove();
+    const input = document.getElementById("message");
+    input.style.paddingLeft = "";
   }
 }
 
@@ -532,3 +538,65 @@ function closeToolBar() {
   document.getElementById("tool-bar").style.display = "none";
   toolIcon.classList.toggle("rotated", false);
 }
+
+// 当按下AI提问按钮触发的函数
+function insertAskPrefix() {
+  const input = document.getElementById("message");
+
+  // 如果已经有 /ask，跳过
+  if (!input.value.startsWith("/ask ")) {
+    input.value = `/ask ${input.value}`.trimStart();
+  }
+
+  renderAskTag(); // 渲染提示卡片
+  input.focus();
+  closeToolBar();
+}
+
+// 当按下AI提问按钮后 渲染一个AI卡片来代替/ask 文本
+function renderAskTag() {
+  const input = document.getElementById("message");
+  input.style.paddingLeft = "57px";
+
+  // 若已有则不重复加
+  if (document.getElementById("ask-tag")) return;
+
+  const tag = document.createElement("div");
+  tag.id = "ask-tag";
+  tag.innerHTML = "🤖 <strong style='color:#1e3a8a;'>提问AI</strong>";
+  tag.style.position = "absolute";
+  tag.style.left = "50px";
+  tag.style.top = "50%";
+  tag.style.transform = "translateY(-50%)";
+  tag.style.background = "#e0e7ff";
+  tag.style.borderRadius = "6px";
+  tag.style.fontSize = "13px";
+  tag.style.padding = "3px 8px";
+  tag.style.color = "#1e3a8a";
+  tag.style.fontWeight = "bold";
+  tag.style.pointerEvents = "none";
+
+  // 包含输入框的 div 要是 relative
+  input.parentElement.style.position = "relative";
+  input.parentElement.appendChild(tag);
+}
+
+document.getElementById("message").addEventListener("keydown", (e) => {
+  const input = e.target;
+
+  // 条件：按的是退格 + 有卡片 + 输入框以 /ask 开头
+  if (
+    e.key === "Backspace" &&
+    input.value.startsWith("/ask ") &&
+    input.selectionStart <= 6 // 光标在 /ask 后面位置
+  ) {
+    // 阻止默认删除行为
+    e.preventDefault();
+
+    // 删除 /ask 和卡片
+    input.value = input.value.replace(/^\/ask\s*/, "");
+    input.style.paddingLeft = "";
+    const tag = document.getElementById("ask-tag");
+    if (tag) tag.remove();
+  }
+});
