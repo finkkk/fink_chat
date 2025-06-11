@@ -80,10 +80,29 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     </div>
 
     <div id="chat-box"></div>
+
     <div id="chat-input">
+      <!-- 工具栏按钮 + 工具栏 -->
+      <div id="tool-container">
+        <button id="tool-toggle-btn">
+          <img id="tool-icon" src="/static/assets/img/add.svg" alt="工具" />
+        </button>
+        <!-- 工具栏 -->
+        <div id="tool-bar">
+
+          <button onclick="sendMessage('/roll')">
+            <img src="/static/assets/img/dice.svg" alt="骰子" />
+          </button>
+          <button onclick="sendMessage('/time')">
+            <img src="/static/assets/img/clock.svg" alt="时间" />
+          </button>
+        </div>
+      </div>
       <input type="text" id="message" placeholder="输入消息..." />
-      <button onclick="sendMessage()">发送</button>
+      <button class="send-btn" onclick="sendMessage()">发送</button>
     </div>
+
+
 
     <div id="footer">
       © 2025 Fink ·

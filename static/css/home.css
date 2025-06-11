@@ -112,7 +112,7 @@ h1 {
   outline: none;
 }
 
-#chat-input button {
+.send-btn {
   padding: 10px 16px;
   background: #3b82f6;
   color: white;
@@ -123,7 +123,7 @@ h1 {
   transition: background-color 0.3s;
 }
 
-#chat-input button:hover {
+.send-btn:hover {
   background: #2563eb;
 }
 
@@ -252,3 +252,85 @@ h1 {
     transform: translate(-50%, -50%);
   }
 }
+
+#tool-container {
+  position: relative;
+}
+
+#tool-toggle-btn {
+  height: 40px;
+  width: 40px;
+  border: none;
+  margin-right: 4px;
+  border-radius: 6px 6px 6px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background: #3b82f6;
+  justify-content: center;
+  padding: 0;
+}
+
+#tool-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+#tool-icon.rotated {
+  transform: rotate(45deg);
+}
+
+#tool-bar {
+  position: absolute;
+  flex-direction: row;
+  top: -62px;
+  left: 5px;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  padding: 6px 8px;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+  gap: 8px;
+  align-items: center;
+  display: flex; 
+}
+
+
+
+#tool-bar button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: #f4f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+#tool-bar button:hover {
+  background-color: #e0e7ee;
+  transform: scale(1.05);
+}
+
+#tool-bar button img {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

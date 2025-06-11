@@ -479,3 +479,56 @@ if ("serviceWorker" in navigator) {
       .catch((err) => console.log("ServiceWorker 注册失败:", err));
   });
 }
+
+
+const toggleBtn = document.getElementById("tool-toggle-btn");
+const toolBar = document.getElementById("tool-bar");
+const toolIcon = document.getElementById("tool-icon");
+// 切换工具栏显示
+toggleBtn.addEventListener("click", () => {
+  const isOpen = toolBar.style.display === "flex";
+  toolBar.style.display = isOpen ? "none" : "flex";
+  toolIcon.classList.toggle("rotated", !isOpen);
+});
+// 点击外部隐藏工具栏
+document.addEventListener("click", (e) => {
+  if (!toolBar.contains(e.target) && !toggleBtn.contains(e.target)) {
+    toolBar.style.display = "none";
+    toolIcon.classList.remove("rotated");
+  }
+});
+
+
+
+
+// 打开投票弹窗
+function openPollModal() {
+  document.getElementById("poll-overlay").style.display = "block";
+  document.getElementById("poll-modal").style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+// 关闭投票弹窗
+function closePollModal() {
+  document.getElementById("poll-overlay").style.display = "none";
+  document.getElementById("poll-modal").style.display = "none";
+  document.body.style.overflow = "";
+}
+// 提交创建投票
+function submitPoll() {
+  const title = document.getElementById("poll-title").value.trim();
+  const options = document.getElementById("poll-options").value.trim().split("\n").filter(opt => opt);
+
+  if (!title || options.length < 2) {
+    alert("请输入标题和至少两个选项！");
+    return;
+  }
+
+  // Socket 发送事件
+  socket.emit("create_poll", {
+    question: title,
+    options: options,
+  });
+
+  closePollModal();
+}
+
