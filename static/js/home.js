@@ -104,6 +104,8 @@ function initSocket() {
   });
 
   socket.on("receive_message", (data) => {
+    console.log("📥 收到 socket 消息:", data);
+
     if (thinkingMsgElement && data.role === "system") {
       thinkingMsgElement.remove(); // 删除“思考中”原始块
       thinkingMsgElement = null;
@@ -624,16 +626,14 @@ const pollCreateRemoveBtn = document.getElementById(
 const pollCreateSubmitBtn = document.getElementById("poll-create-submit");
 const pollCreateInput = document.getElementById("poll-create-question");
 
-
 // —— 1. 引用 DOM —— //
-const detailOverlay = document.getElementById('poll-detail-overlay');
-const detailModal   = document.getElementById('poll-detail-modal');
-const detailClose   = detailModal.querySelector('.close');
-const detailBack    = detailModal.querySelector('.back');
-const detailStatus  = detailModal.querySelector('#poll-list-card-status');
-const detailQ       = detailModal.querySelector('h3');
-const detailOptsUl  = detailModal.querySelector('.poll-detail-options');
-
+const detailOverlay = document.getElementById("poll-detail-overlay");
+const detailModal = document.getElementById("poll-detail-modal");
+const detailClose = detailModal.querySelector(".close");
+const detailBack = detailModal.querySelector(".back");
+const detailStatus = detailModal.querySelector("#poll-list-card-status");
+const detailQ = detailModal.querySelector("h3");
+const detailOptsUl = detailModal.querySelector(".poll-detail-options");
 
 // 假设给工具栏投票按钮加了个 id="tool-poll-btn"
 const toolPollBtn = document.getElementById("tool-poll-btn");
@@ -665,7 +665,7 @@ function closePollCreate() {
 }
 function backToPollList() {
   hide(createOverlay, createModal);
-  hide(detailOverlay,detailModal);
+  hide(detailOverlay, detailModal);
   show(listOverlay, listModal);
 }
 // —— 4. 事件绑定 —— //
@@ -714,39 +714,49 @@ function handleRemoveOption() {
 pollCreateAddBtn.addEventListener("click", handleAddOption);
 pollCreateRemoveBtn.addEventListener("click", handleRemoveOption);
 
-// —— 2. 渲染函数 —— //
 function renderPollList(polls) {
   // 清空旧内容
   pollListContainer.innerHTML = "";
 
   polls.forEach((poll) => {
-    // 卡片外壳
     const card = document.createElement("div");
     card.className = "poll-list-card";
-    // 点击打开详情
     card.addEventListener("click", () => openPollDetail(poll.poll_id));
 
-    // 标题
     const title = document.createElement("div");
     title.className = "poll-list-card-title";
     title.textContent = poll.question;
 
-    // 元信息（发起人 + 状态·参与数）
     const meta = document.createElement("div");
     meta.className = "poll-list-card-meta";
 
     const author = document.createElement("span");
     author.className = "poll-list-card-author";
-    author.textContent = `由 ${poll.creator} 发起`;
+    author.innerHTML = `由 <span style="color:#3b82f6; font-weight:bold;">${poll.creator}</span> 发起`;
 
     const status = document.createElement("span");
     status.className = "poll-list-card-status";
-    const label = poll.ended ? "已结束" : "进行中";
+
+    // 状态判断
+    let label = "";
+    let color = "";
+
+    if (poll.ended) {
+      label = "已结束";
+      color = "#888"; // 灰色
+    } else if (poll.user_voted) {
+      label = "你已投票";
+      color = "#facc15"; // 黄色
+    } else {
+      label = "进行中";
+      color = "#22c55e"; // 绿色
+    }
+
     status.textContent = `${label} · ${poll.total_votes} 人参与`;
+    status.style.color = color;
+    status.style.fontWeight = "bold";
 
     meta.append(author, status);
-
-    // 组装并插入
     card.append(title, meta);
     pollListContainer.appendChild(card);
   });
@@ -799,6 +809,7 @@ async function handlePollCreateSubmit() {
     }
 
     showAlert("创建成功！", "success");
+
     // 关闭创建浮窗，打开列表并刷新
     closePollCreate();
     openPollList();
@@ -824,63 +835,73 @@ async function handlePollCreateSubmit() {
 // —— 事件绑定 —— //
 pollCreateSubmitBtn.addEventListener("click", handlePollCreateSubmit);
 
-
-
-
 // —— 3. 打开详情 —— //
 async function openPollDetail(pollId) {
   try {
     // 请求详情接口
-    const res  = await fetch(`/api/polls/${pollId}`);
-    if (!res.ok) throw new Error('获取详情失败');
+    const res = await fetch(`/api/polls/${pollId}`);
+    if (!res.ok) throw new Error("获取详情失败");
     const data = await res.json();
 
-    // 填 header
-    // h3 内容里 emoji 后面是文本节点，再是 small#poll-list-card-status
+    // 设置标题
     detailQ.childNodes[0].nodeValue = `🗳️ ${data.question}`;
-    detailStatus.textContent = data.ended ? '（已结束）' : '';
+
+    // 设置状态文本和颜色
+    if (data.ended) {
+      detailStatus.textContent = "（已结束）";
+      detailStatus.style.color = "#888"; // 灰色
+    } else if (data.user_voted) {
+      detailStatus.textContent = "（你已投票）";
+      detailStatus.style.color = "#facc15"; // 黄色
+    } else {
+      detailStatus.textContent = "（进行中）";
+      detailStatus.style.color = "#22c55e"; // 绿色
+    }
 
     // 清空旧列表
-    detailOptsUl.innerHTML = '';
+    detailOptsUl.innerHTML = "";
 
     // 渲染每个选项
-    data.options.forEach(opt => {
-      const li = document.createElement('li');
+    data.options.forEach((opt) => {
+      const li = document.createElement("li");
 
-      const btn = document.createElement('button');
-      btn.className = 'poll-detail-option-btn';
+      const btn = document.createElement("button");
+      btn.className = "poll-detail-option-btn";
 
       // 文本
-      const spanText = document.createElement('span');
-      spanText.className = 'poll-detail-option-text';
+      const spanText = document.createElement("span");
+      spanText.className = "poll-detail-option-text";
       spanText.textContent = opt.text;
       btn.append(spanText);
 
+      const shouldShowResult = data.ended || data.user_voted; // 判断是否可以渲染结果（已投过或者已结束）
+
       // 进度条
-      const bar = document.createElement('div');
-      bar.className = 'progress-bar';
+      const bar = document.createElement("div");
+      bar.className = "progress-bar";
       // 结束后显示，否则隐藏
-      bar.style.display = data.ended ? 'block' : 'none';
-      const fill = document.createElement('div');
-      fill.className = 'progress-fill';
+
+      bar.style.display = shouldShowResult ? "block" : "none";
+      const fill = document.createElement("div");
+      fill.className = "progress-fill";
       // 计算百分比
       const pct = data.total_votes
-        ? Math.round(opt.votes / data.total_votes * 100) + '%'
-        : '0%';
+        ? Math.round((opt.votes / data.total_votes) * 100) + "%"
+        : "0%";
       fill.style.width = pct;
       bar.append(fill);
       btn.append(bar);
 
       // 票数
-      const count = document.createElement('span');
-      count.className = 'vote-count';
+      const count = document.createElement("span");
+      count.className = "vote-count";
       count.textContent = `${opt.votes} 票`;
-      count.style.display = data.ended ? 'inline' : 'none';
+      count.style.display = shouldShowResult ? "inline" : "none";
       btn.append(count);
 
       // 点击投票（进行中才绑定）
       if (!data.ended) {
-        btn.addEventListener('click', () => votePoll(pollId, opt.option_id));
+        btn.addEventListener("click", () => votePoll(pollId, opt.option_id));
       }
 
       li.append(btn);
@@ -889,12 +910,11 @@ async function openPollDetail(pollId) {
 
     // 显示浮窗
     show(detailOverlay, detailModal);
-    hide(listOverlay,listModal);
-    hide(createOverlay,createModal);
-
+    hide(listOverlay, listModal);
+    hide(createOverlay, createModal);
   } catch (err) {
     console.error(err);
-    showAlert('加载投票详情失败', 'error');
+    showAlert("加载投票详情失败", "error");
   }
 }
 
@@ -902,28 +922,30 @@ async function openPollDetail(pollId) {
 async function votePoll(pollId, optionId) {
   try {
     const res = await fetch(`/api/polls/${pollId}/vote`, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify({ option_id: optionId })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ option_id: optionId }),
     });
-    const js  = await res.json();
-    if (!res.ok) throw new Error(js.error || '投票失败');
-    showAlert('投票成功！', 'success');
+    const js = await res.json();
+    if (!res.ok) throw new Error(js.error || "投票失败");
 
-    // 刷新详情和列表
+    showAlert("投票成功！", "success");
+
+    // ✅ 此处 js.user_voted 为 true，可用于前端缓存判断（如果你有用）
+
+    // 刷新详情和列表，确保立即显示票数
     await openPollDetail(pollId);
     await loadPollList();
-
   } catch (err) {
     console.error(err);
-    showAlert(err.message || '投票出错', 'error');
+    showAlert(err.message || "投票出错", "error");
   }
 }
 
 // —— 5. 绑定关闭/返回 —— //
-detailClose.addEventListener('click',  () => hide(detailOverlay, detailModal));
-detailBack.addEventListener('click', backToPollList);
-detailOverlay.addEventListener('click', () => hide(detailOverlay, detailModal));
+detailClose.addEventListener("click", () => hide(detailOverlay, detailModal));
+detailBack.addEventListener("click", backToPollList);
+detailOverlay.addEventListener("click", () => hide(detailOverlay, detailModal));
 
 // —— 6. 全局挂载（方便 Card 点击回调） —— //
 window.openPollDetail = openPollDetail;

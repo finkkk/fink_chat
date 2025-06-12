@@ -2,23 +2,33 @@
 from flask import Blueprint, request, jsonify, session
 from models import db, Poll, Option, Vote,User
 
+
+
 polls_bp = Blueprint("polls", __name__, url_prefix="/api/polls")
 
 
 # 列表：公开接口
 @polls_bp.route("", methods=["GET"])
 def list_polls():
+    username = session.get("username")
+    user = User.query.filter_by(username=username).first() if username else None
     polls = Poll.query.order_by(Poll.created_at.desc()).all()
     data = []
     for p in polls:
         total = sum(opt.votes for opt in p.options)
+        # 检查当前用户是否投过该投票
+        user_voted = False
+        if user:
+            user_voted = Vote.query.filter_by(poll_id=p.id, user_id=user.id).first() is not None
+
         data.append(
             {
                 "poll_id": p.id,
                 "question": p.question,
                 "creator": p.creator,
                 "created_at": p.created_at.isoformat(),
-                "ended": p.is_ended,  # 动态计算
+                "ended": p.is_ended, 
+                "user_voted": user_voted, # 动态计算
                 "total_votes": total,
             }
         )
@@ -47,7 +57,7 @@ def get_poll(poll_id):
             "creator": p.creator,
             "created_at": p.created_at.isoformat(),
             "ended": p.is_ended,
-            'user_voted': user_voted,
+            "user_voted": user_voted, 
             "total_votes": sum(o.votes for o in p.options),
             "options": opts,
         }
@@ -73,6 +83,7 @@ def create_poll():
     for txt in opts:
         db.session.add(Option(poll_id=poll.id, text=txt))
     db.session.commit()
+
     return jsonify({"poll_id": poll.id}), 201
 
 
@@ -102,4 +113,7 @@ def vote_poll(poll_id):
     db.session.add(vote)
     opt.votes += 1
     db.session.commit()
-    return jsonify({"success": True}), 200
+    return jsonify({
+        "success": True,
+        "user_voted": True  # 前端可立即用这个判断是否投过票
+        }), 200

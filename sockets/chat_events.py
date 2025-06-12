@@ -20,6 +20,16 @@ def get_user_info(username):
 def register_chat_events(socketio):
 
 
+
+
+    def send_system_message(text):
+        socketio.emit("receive_message", {
+            "username": "a",
+            "message": text,
+            "role": "system",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+
     # 连接逻辑
     @socketio.on("connect")
     def handle_connect():
@@ -169,3 +179,6 @@ def register_chat_events(socketio):
             },
             broadcast=True,
         )
+
+
+
