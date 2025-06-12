@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify, session, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
 from config import GUEST_USERNAME
-from session_state import user_sid_map, online_users
+from session_state import user_sid_map
 
 auth_bp = Blueprint("auth", __name__)
 

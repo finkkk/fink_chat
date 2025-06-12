@@ -338,16 +338,21 @@ function atUser(name) {
   }
 }
 
+function showAlert(message, type = "info", duration = 1800) {
+  const el = document.getElementById("alert-banner");
+  if (!el) return;
+  // 设置内容和类型
+  el.textContent = message;
+  el.className = `alert-banner ${type} show`;
+  // 自动隐藏
+  setTimeout(() => {
+    el.classList.remove("show");
+  }, duration);
+}
+
 // 显示自定义 AI 提示
 function showAIWarning() {
-  const warnEl = document.getElementById("ai-warning");
-  if (!warnEl) return;
-  warnEl.style.display = "block";
-
-  // 自动隐藏（1.8 秒后）
-  setTimeout(() => {
-    warnEl.style.display = "none";
-  }, 1800);
+  showAlert("🤖 请等待 AI 思考完毕再发送！", "error");
 }
 
 function sendMessage(msgFromBtn = null) {
@@ -600,3 +605,325 @@ document.getElementById("message").addEventListener("keydown", (e) => {
     if (tag) tag.remove();
   }
 });
+
+// —— 1. 引用 DOM —— //
+const listOverlay = document.getElementById("poll-list-overlay");
+const listModal = document.getElementById("poll-list-modal");
+const listCloseBtn = document.getElementById("poll-list-close");
+const listNewBtn = document.getElementById("poll-list-new-btn");
+const pollListContainer = document.getElementById("poll-list-container");
+
+const createOverlay = document.getElementById("poll-create-overlay");
+const createModal = document.getElementById("poll-create-modal");
+const createCancelBtn = document.getElementById("poll-create-cancel");
+const pollCreateOptionList = document.getElementById("poll-create-option-list");
+const pollCreateAddBtn = document.getElementById("poll-create-add-option");
+const pollCreateRemoveBtn = document.getElementById(
+  "poll-create-remove-option"
+);
+const pollCreateSubmitBtn = document.getElementById("poll-create-submit");
+const pollCreateInput = document.getElementById("poll-create-question");
+
+
+// —— 1. 引用 DOM —— //
+const detailOverlay = document.getElementById('poll-detail-overlay');
+const detailModal   = document.getElementById('poll-detail-modal');
+const detailClose   = detailModal.querySelector('.close');
+const detailBack    = detailModal.querySelector('.back');
+const detailStatus  = detailModal.querySelector('#poll-list-card-status');
+const detailQ       = detailModal.querySelector('h3');
+const detailOptsUl  = detailModal.querySelector('.poll-detail-options');
+
+
+// 假设给工具栏投票按钮加了个 id="tool-poll-btn"
+const toolPollBtn = document.getElementById("tool-poll-btn");
+
+// —— 2. 通用显示／隐藏函数 —— //
+function show(overlay, modal) {
+  overlay.style.display = "block";
+  modal.style.display = "flex";
+}
+function hide(overlay, modal) {
+  overlay.style.display = "none";
+  modal.style.display = "none";
+}
+
+// —— 3. 四个动作函数 —— //
+function openPollList() {
+  show(listOverlay, listModal);
+  loadPollList();
+  closeToolBar();
+}
+function openPollCreate() {
+  hide(listOverlay, listModal);
+  show(createOverlay, createModal);
+}
+
+function closePollCreate() {
+  show(listOverlay, listModal);
+  hide(createOverlay, createModal);
+}
+function backToPollList() {
+  hide(createOverlay, createModal);
+  hide(detailOverlay,detailModal);
+  show(listOverlay, listModal);
+}
+// —— 4. 事件绑定 —— //
+// 4.1 工具栏“投票”按钮 → 打开列表
+toolPollBtn.addEventListener("click", openPollList);
+
+// 4.2 列表浮窗底部“＋”按钮 → 打开创建
+listNewBtn.addEventListener("click", openPollCreate);
+
+// 4.3 创建浮窗“取消”或点击遮罩 → 返回列表
+createCancelBtn.addEventListener("click", backToPollList);
+createOverlay.addEventListener("click", backToPollList);
+
+// 4.4 列表浮窗的关闭（×）和遮罩
+listCloseBtn.addEventListener("click", () => hide(listOverlay, listModal));
+listOverlay.addEventListener("click", () => hide(listOverlay, listModal));
+
+// —— 2. 增减选项按钮逻辑 —— //
+function handleAddOption() {
+  const items = pollCreateOptionList.querySelectorAll(
+    ".poll-create-option-item"
+  );
+  if (items.length >= 6) {
+    showAlert("最多6个选项！", "error");
+    return;
+  }
+  const idx = items.length + 1;
+  const div = document.createElement("div");
+  div.className = "poll-create-option-item";
+  div.innerHTML = `<input type="text" maxlength="8" placeholder="选项${idx}" />`;
+  pollCreateOptionList.appendChild(div);
+}
+
+function handleRemoveOption() {
+  const items = pollCreateOptionList.querySelectorAll(
+    ".poll-create-option-item"
+  );
+  if (items.length <= 2) {
+    showAlert("最少2个选项！", "error");
+    return;
+  }
+  pollCreateOptionList.removeChild(items[items.length - 1]);
+}
+
+// —— 3. 绑定点击事件 —— //
+pollCreateAddBtn.addEventListener("click", handleAddOption);
+pollCreateRemoveBtn.addEventListener("click", handleRemoveOption);
+
+// —— 2. 渲染函数 —— //
+function renderPollList(polls) {
+  // 清空旧内容
+  pollListContainer.innerHTML = "";
+
+  polls.forEach((poll) => {
+    // 卡片外壳
+    const card = document.createElement("div");
+    card.className = "poll-list-card";
+    // 点击打开详情
+    card.addEventListener("click", () => openPollDetail(poll.poll_id));
+
+    // 标题
+    const title = document.createElement("div");
+    title.className = "poll-list-card-title";
+    title.textContent = poll.question;
+
+    // 元信息（发起人 + 状态·参与数）
+    const meta = document.createElement("div");
+    meta.className = "poll-list-card-meta";
+
+    const author = document.createElement("span");
+    author.className = "poll-list-card-author";
+    author.textContent = `由 ${poll.creator} 发起`;
+
+    const status = document.createElement("span");
+    status.className = "poll-list-card-status";
+    const label = poll.ended ? "已结束" : "进行中";
+    status.textContent = `${label} · ${poll.total_votes} 人参与`;
+
+    meta.append(author, status);
+
+    // 组装并插入
+    card.append(title, meta);
+    pollListContainer.appendChild(card);
+  });
+}
+
+// —— 刷新并渲染投票列表 —— //
+async function loadPollList() {
+  try {
+    const res = await fetch("/api/polls", { method: "GET" });
+    const data = await res.json();
+    renderPollList(data); // 你之前写好的列表渲染函数
+  } catch (err) {
+    console.log("fetch /api/polls →", res.status, res.statusText);
+    const data = await res.json();
+    console.log("list data →", data);
+    console.error(err);
+    showAlert("刷新投票列表失败", "error");
+  }
+}
+
+// —— 提交新投票 —— //
+async function handlePollCreateSubmit() {
+  const question = pollCreateInput.value.trim();
+  const options = Array.from(pollCreateOptionList.querySelectorAll("input"))
+    .map((i) => i.value.trim())
+    .filter((v) => v);
+
+  // 验证
+  if (!question) {
+    return showAlert("请输入投票标题", "error");
+  }
+  if (options.length < 2) {
+    return showAlert("至少要两个选项", "error");
+  }
+  if (options.length > 6) {
+    return showAlert("最多 6 个选项", "error");
+  }
+
+  // 发送请求
+  try {
+    pollCreateSubmitBtn.disabled = true;
+    const res = await fetch("/api/polls", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, options }),
+    });
+    const js = await res.json();
+    if (!res.ok) {
+      return showAlert(js.error || "创建投票失败", "error");
+    }
+
+    showAlert("创建成功！", "success");
+    // 关闭创建浮窗，打开列表并刷新
+    closePollCreate();
+    openPollList();
+    await loadPollList();
+
+    // 清空表单
+    pollCreateInput.value = "";
+    pollCreateOptionList
+      .querySelectorAll(".poll-create-option-item")
+      .forEach((div, i) => {
+        div.querySelector("input").value = "";
+        // 如果多于两个选项，恢复到初始两项
+        if (i >= 2) div.remove();
+      });
+  } catch (err) {
+    console.error(err);
+    showAlert("网络错误，创建失败", "error");
+  } finally {
+    pollCreateSubmitBtn.disabled = false;
+  }
+}
+
+// —— 事件绑定 —— //
+pollCreateSubmitBtn.addEventListener("click", handlePollCreateSubmit);
+
+
+
+
+// —— 3. 打开详情 —— //
+async function openPollDetail(pollId) {
+  try {
+    // 请求详情接口
+    const res  = await fetch(`/api/polls/${pollId}`);
+    if (!res.ok) throw new Error('获取详情失败');
+    const data = await res.json();
+
+    // 填 header
+    // h3 内容里 emoji 后面是文本节点，再是 small#poll-list-card-status
+    detailQ.childNodes[0].nodeValue = `🗳️ ${data.question}`;
+    detailStatus.textContent = data.ended ? '（已结束）' : '';
+
+    // 清空旧列表
+    detailOptsUl.innerHTML = '';
+
+    // 渲染每个选项
+    data.options.forEach(opt => {
+      const li = document.createElement('li');
+
+      const btn = document.createElement('button');
+      btn.className = 'poll-detail-option-btn';
+
+      // 文本
+      const spanText = document.createElement('span');
+      spanText.className = 'poll-detail-option-text';
+      spanText.textContent = opt.text;
+      btn.append(spanText);
+
+      // 进度条
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      // 结束后显示，否则隐藏
+      bar.style.display = data.ended ? 'block' : 'none';
+      const fill = document.createElement('div');
+      fill.className = 'progress-fill';
+      // 计算百分比
+      const pct = data.total_votes
+        ? Math.round(opt.votes / data.total_votes * 100) + '%'
+        : '0%';
+      fill.style.width = pct;
+      bar.append(fill);
+      btn.append(bar);
+
+      // 票数
+      const count = document.createElement('span');
+      count.className = 'vote-count';
+      count.textContent = `${opt.votes} 票`;
+      count.style.display = data.ended ? 'inline' : 'none';
+      btn.append(count);
+
+      // 点击投票（进行中才绑定）
+      if (!data.ended) {
+        btn.addEventListener('click', () => votePoll(pollId, opt.option_id));
+      }
+
+      li.append(btn);
+      detailOptsUl.append(li);
+    });
+
+    // 显示浮窗
+    show(detailOverlay, detailModal);
+    hide(listOverlay,listModal);
+    hide(createOverlay,createModal);
+
+  } catch (err) {
+    console.error(err);
+    showAlert('加载投票详情失败', 'error');
+  }
+}
+
+// —— 4. 投票 —— //
+async function votePoll(pollId, optionId) {
+  try {
+    const res = await fetch(`/api/polls/${pollId}/vote`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ option_id: optionId })
+    });
+    const js  = await res.json();
+    if (!res.ok) throw new Error(js.error || '投票失败');
+    showAlert('投票成功！', 'success');
+
+    // 刷新详情和列表
+    await openPollDetail(pollId);
+    await loadPollList();
+
+  } catch (err) {
+    console.error(err);
+    showAlert(err.message || '投票出错', 'error');
+  }
+}
+
+// —— 5. 绑定关闭/返回 —— //
+detailClose.addEventListener('click',  () => hide(detailOverlay, detailModal));
+detailBack.addEventListener('click', backToPollList);
+detailOverlay.addEventListener('click', () => hide(detailOverlay, detailModal));
+
+// —— 6. 全局挂载（方便 Card 点击回调） —— //
+window.openPollDetail = openPollDetail;

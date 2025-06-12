@@ -79,6 +79,143 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
       </button>
     </div>
 
+
+    <!-- 公用遮罩 -->
+    <div id="poll-list-overlay" class="overlay"></div>
+    <div id="poll-detail-overlay" class="overlay"></div>
+    <div id="poll-create-overlay" class="overlay"></div>
+
+
+
+    <!-- 投票列表浮窗 -->
+    <div id="poll-list-modal" class="modal">
+      <button id="poll-list-close" class="close">×</button>
+      <!-- 卡片式列表容器 -->
+      <div id="poll-list-container">
+      </div>
+      <!-- 在列表底部新建按钮 -->
+      <button id="poll-list-new-btn" class="fab">
+        <svg width="24" height="24" fill="#fff">
+          <path d="M12 5v14m-7-7h14" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+
+    <!-- 投票详情浮窗 -->
+    <div id="poll-detail-modal" class="modal">
+      <!-- 返回按钮 -->
+      <button class="back" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="close" aria-label="关闭">×</button>
+      <h3>🗳️ 最喜欢的编程语言？<small id="poll-list-card-status"></small></h3>
+      <ul class="poll-detail-options">
+        <!-- 假设三个选项，后端渲染渲染数量可变 -->
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">JavaScript</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">Python</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">Go</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">Go</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">Go</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+        <li>
+          <button class="poll-detail-option-btn">
+            <span class="poll-detail-option-text">Go</span>
+            <div class="progress-bar" style="display:none;">
+              <div class="progress-fill" style="width:0;"></div>
+            </div>
+            <span class="vote-count" style="display:none;">0 票</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+
+
+
+    <!-- 创建投票浮窗 -->
+    <div id="poll-create-modal" class="modal">
+      <h3>🗳️ 发起投票</h3>
+
+      <label for="poll-create-question">投票标题：</label>
+      <input id="poll-create-question" type="text" maxlength="15" placeholder="请输入问题" />
+
+      <label>选项（每项最多8字）：</label>
+      <div id="poll-create-option-list">
+        <div class="poll-create-option-item">
+          <input type="text" maxlength="8" style="margin-top: 10px;" placeholder="选项1" />
+        </div>
+        <div class="poll-create-option-item">
+          <input type="text" maxlength="8" style="margin-top: -5px;" placeholder="选项2" />
+        </div>
+      </div>
+
+      <div class="poll-create-footer">
+        <div class="poll-create-option-btns">
+          <button id="poll-create-add-option" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+          <button id="poll-create-remove-option" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
+        </div>
+        <div class="poll-create-main-btns">
+          <button id="poll-create-cancel">取消</button>
+          <button id="poll-create-submit">提交</button>
+        </div>
+      </div>
+
+    </div>
+
     <div id="chat-box"></div>
 
     <div id="chat-input">
@@ -89,8 +226,11 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         </button>
         <!-- 工具栏 -->
         <div id="tool-bar">
-          <button onclick="insertAskPrefix()">
+          <button id="tool-ai-btn" onclick="insertAskPrefix()">
             <img src="/static/assets/img/ai.svg" alt="AI" />
+          </button>
+          <button id="tool-poll-btn">
+            <img src="/static/assets/img/vote.svg" alt="投票" />
           </button>
           <button onclick="sendToolCommand('/roll')">
             <img src="/static/assets/img/dice.svg" alt="骰子" />
@@ -113,23 +253,8 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
     </div>
   </div>
 
-  <div id="ai-warning" style="
-  display: none;
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #f87171;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
-  ">
-    🤖 请等待 AI 思考完毕再发送！
-  </div>
+  <!-- 通用警告栏容器 -->
+  <div id="alert-banner" class="alert-banner"></div>
 </body>
 
 </html>

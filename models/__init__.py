@@ -5,5 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 # 再导入模型
-from .user    import User  # noqa: E402, F401
-from .message import Message  # noqa: E402, F401
+from .user    import User               # noqa: E402, F401
+from .message import Message            # noqa: E402, F401
+from .poll import Poll,Vote,Option      # noqa: E402, F401

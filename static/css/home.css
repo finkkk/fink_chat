@@ -50,6 +50,43 @@ h1 {
   cursor: pointer;
 }
 
+/* 通用警告栏样式 */
+.alert-banner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, -150%);
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+  z-index: 9999;
+}
+
+/* 不同类型的背景色 */
+.alert-banner.error {
+  background-color: #f87171;
+}
+
+.alert-banner.success {
+  background-color: #34d399;
+}
+
+.alert-banner.info {
+  background-color: #60a5fa;
+}
+
+/* visible 状态 */
+.alert-banner.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+
 #load-more:disabled {
   background-color: #ccc;
   cursor: not-allowed;
@@ -333,4 +370,322 @@ h1 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+
+/* ========== 通用遮罩 & 弹窗 & 关闭按钮 ========== */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 360px;
+  width: 90%;
+  z-index: 999;
+  flex-direction: column;
+  max-height: 95vh;
+
+}
+
+.modal .close {
+  position: absolute;
+  z-index: 1;
+  top: 5px;
+  right: 5px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal .back {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 25px;
+  height: 25px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  /* 确保在滚动条之上 */
+  transition: background 0.2s;
+}
+
+.modal .back:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.modal .back svg {
+  width: 16px;
+  height: 16px;
+  color: #333;
+}
+
+/* ========== 创建投票浮窗 ========== */
+#poll-create-modal h3 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+#poll-create-modal input[type="text"] {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1.5px solid #ccc;
+  border-radius: 6px;
+}
+
+
+
+.poll-create-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* 左右两端对齐 */
+  margin-top: 12px;
+}
+
+#poll-create-main-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.poll-create-option-btns {
+  display: flex;
+  gap: 3px;
+}
+
+.poll-create-option-btns button svg {
+  width: 100%;
+  height: 100%;
+  stroke: #3b82f6;
+  /* 或者 hover 时改色 */
+}
+
+.poll-create-option-btns button:hover svg {
+  stroke: #fff;
+}
+
+.poll-create-option-btns button {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #66a4fb;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #3b82f6;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.poll-create-option-btns button:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
+
+#poll-create-cancel,
+#poll-create-submit {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: #fff;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#poll-create-cancel:hover,
+#poll-create-submit:hover {
+  background: #2563eb;
+}
+
+
+
+
+
+
+
+
+
+/* ========== 投票列表浮窗 ========== */
+#poll-list-container {
+  flex: 1;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  overflow-y: auto;
+  padding: 8px;
+  overflow-y: auto;
+  /* auto 或者 scroll（总是显示滚动条）都行 */
+  padding-bottom: 80px;
+  padding-right: 10px;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+#poll-detail-modal h3 {
+  margin-top: 25px;
+  font-size: 18px;
+}
+
+/* 3. WebKit 浏览器自定义滚动条 */
+#poll-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#poll-list-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#poll-list-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  border: 1px solid transparent;
+}
+
+#poll-list-new-btn {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.poll-list-card {
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.poll-list-card:hover {
+  background: #f0f0f0;
+}
+
+.poll-list-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.poll-list-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ========== 投票详情浮窗 ========== */
+.poll-detail-options {
+  list-style: none;
+  margin: 5px;
+  padding: 0;
+}
+
+.poll-detail-options li+li {
+  margin-top: 8px;
+}
+
+.poll-detail-option-btn {
+  position: relative;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.poll-detail-option-btn:hover {
+  background: #f0f8ff;
+}
+
+.poll-detail-option-text {
+  display: block;
+  font-size: 14px;
+}
+
+/* 进度条 & 票数默认隐藏，JS 根据 data.ended 控制 inline 显示 */
+.progress-bar {
+  margin-top: 6px;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #3b82f6;
+}
+
+.vote-count {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #333;
+}
+
+
+
+
+
+
+
+
+
+
+
+/* 投票详情浮窗（测试） */
+#poll-detail-modal {
+  display: none;
+}
+
+#poll-list-modal {
+  display: none;
+}
+
+#poll-create-modal {
+  display: none;
 }
