@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="static/logo.webp" width="120" alt="logo">
+  <img src="static/assets/img/logo.webp" width="120" alt="logo">
 </p>
 
 <h1 align="center">Fink-chat</h1>
@@ -38,6 +38,7 @@
 - 支持自定义指令系统
 - 实现模块化指令编写系统，可自定义指令实现
 - 指令安全鉴权，针对身份组分配权限
+- 工具栏功能（引导使用快捷指令）
 
 ---
 
