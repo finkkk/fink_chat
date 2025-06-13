@@ -95,7 +95,7 @@ function initSocket() {
       loadMoreBtn.textContent = "没有更多消息";
       return;
     }
-    messages.forEach((msg) => appendMessage(msg, true));
+    messages.reverse().forEach((msg) => appendMessage(msg, true));
     messageOffset += messages.length;
     if (messageOffset === messages.length) {
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -104,7 +104,7 @@ function initSocket() {
 
   socket.on("receive_message", (data) => {
     if (data.role === "poll_broadcast") {
-      renderPollBroadcastCard(data);
+      renderPollBroadcastCard(data,false);
       return;
     }
 
@@ -210,7 +210,7 @@ function appendMessage(data, prepend = false) {
   const msgDiv = document.createElement("div");
 
   if (data.role === "poll_broadcast") {
-    renderPollBroadcastCard(data);
+    renderPollBroadcastCard(data,prepend);
     return;
   }
 
@@ -889,7 +889,7 @@ detailOverlay.addEventListener("click", () => hide(detailOverlay, detailModal));
 // —— 6. 全局挂载（方便 Card 点击回调） —— //
 window.openPollDetail = openPollDetail;
 
-function renderPollBroadcastCard(data) {
+function renderPollBroadcastCard(data, prepend = false) {
   const msgDiv = document.createElement("div");
 
   msgDiv.setAttribute("data-poll-id", data.poll_id);
@@ -919,8 +919,12 @@ function renderPollBroadcastCard(data) {
   button.onclick = () => openPollDetail(data.poll_id);
 
   msgDiv.appendChild(button);
-  chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  if (prepend) {
+    chatBox.insertBefore(msgDiv, chatBox.firstChild);
+  } else {
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
 }
 
 function renderPollDetail(data) {

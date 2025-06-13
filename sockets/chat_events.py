@@ -32,8 +32,7 @@ def register_chat_events(socketio):
     @socketio.on("connect")
     def handle_connect():
         print(f"Socket 连接建立: {request.sid}")
-        messages = Message.query.order_by(Message.timestamp.desc()).limit(50).all()
-        messages = reversed(messages)
+        messages = Message.query.order_by(Message.timestamp.asc()).limit(50).all()  #  升序
 
         history = []
         for m in messages:
@@ -96,12 +95,11 @@ def register_chat_events(socketio):
         limit = int(data.get("limit", 10))
 
         messages = (
-            Message.query.order_by(Message.timestamp.desc())
+            Message.query.order_by(Message.timestamp.asc())
             .offset(offset)
             .limit(limit)
             .all()
-        )
-        messages = reversed(messages)
+        )  #  保留升序 + 正常分页
 
         result = []
         for m in messages:
