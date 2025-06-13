@@ -687,5 +687,5 @@ h1 {
 }
 
 #poll-create-modal {
-  display: flex;
+  display: none;
 }
