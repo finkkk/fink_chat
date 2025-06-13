@@ -95,7 +95,7 @@ function initSocket() {
       loadMoreBtn.textContent = "没有更多消息";
       return;
     }
-    messages.reverse().forEach((msg) => appendMessage(msg, true));
+    messages.forEach((msg) => appendMessage(msg, true));
     messageOffset += messages.length;
     if (messageOffset === messages.length) {
       chatBox.scrollTop = chatBox.scrollHeight;
@@ -793,8 +793,9 @@ function renderPollList(polls) {
 
 // —— 刷新并渲染投票列表 —— //
 function loadPollList() {
+  socket.off("poll_list_result");
   socket.emit("list_polls");
-  socket.on("poll_list_result", renderPollList);
+  socket.once("poll_list_result", renderPollList);
 }
 
 // —— 提交新投票 —— //
