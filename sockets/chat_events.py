@@ -70,7 +70,7 @@ def register_chat_events(socketio):
                     {
                         "username": m.username,
                         "role": m.role,
-                        "message": payload.get("question", ""),
+                        "message": payload.get("message", ""),
                         "creator": payload.get("creator", "未知"),
                         "poll_id": payload.get("poll_id"),
                         "ended": ended,

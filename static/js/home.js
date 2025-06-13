@@ -95,16 +95,21 @@ function initSocket() {
       loadMoreBtn.textContent = "没有更多消息";
       return;
     }
-    messages.reverse().forEach((msg) => appendMessage(msg, true));
+
+    messages.reverse().forEach((msg) => {
+      
+      appendMessage(msg, true); //  统一处理
+    });
+
     messageOffset += messages.length;
+
+    // 首次加载滚动到底部
     if (messageOffset === messages.length) {
       chatBox.scrollTop = chatBox.scrollHeight;
     }
   });
 
   socket.on("receive_message", (data) => {
-
-
     if (thinkingMsgElement && data.role === "system") {
       thinkingMsgElement.remove(); // 删除“思考中”原始块
       thinkingMsgElement = null;
@@ -694,22 +699,22 @@ function backToPollList() {
   show(listOverlay, listModal);
   loadPollList();
 }
-// —— 4. 事件绑定 —— //
-// 4.1 工具栏“投票”按钮 → 打开列表
+// —— 事件绑定 —— //
+// 工具栏“投票”按钮 → 打开列表
 toolPollBtn.addEventListener("click", openPollList);
 
-// 4.2 列表浮窗底部“＋”按钮 → 打开创建
+// 列表浮窗底部“＋”按钮 → 打开创建
 listNewBtn.addEventListener("click", openPollCreate);
 
-// 4.3 创建浮窗“取消”或点击遮罩 → 返回列表
+// 创建浮窗“取消”或点击遮罩 → 返回列表
 createCancelBtn.addEventListener("click", backToPollList);
 createOverlay.addEventListener("click", backToPollList);
 
-// 4.4 列表浮窗的关闭（×）和遮罩
+// 列表浮窗的关闭（×）和遮罩
 listCloseBtn.addEventListener("click", () => hide(listOverlay, listModal));
 listOverlay.addEventListener("click", () => hide(listOverlay, listModal));
 
-// —— 2. 增减选项按钮逻辑 —— //
+// —— 增减选项按钮逻辑 —— //
 function handleAddOption() {
   const items = pollCreateOptionList.querySelectorAll(
     ".poll-create-option-item"
@@ -736,7 +741,7 @@ function handleRemoveOption() {
   pollCreateOptionList.removeChild(items[items.length - 1]);
 }
 
-// —— 3. 绑定点击事件 —— //
+// —— 绑定点击事件 —— //
 pollCreateAddBtn.addEventListener("click", handleAddOption);
 pollCreateRemoveBtn.addEventListener("click", handleRemoveOption);
 
@@ -856,7 +861,7 @@ function openPollDetail(pollId) {
   });
 }
 
-// —— 4. 投票 —— //
+// —— 投票 —— //
 function votePoll(pollId, optionId) {
   if (!pollId || !optionId) return;
 
@@ -879,19 +884,18 @@ function votePoll(pollId, optionId) {
   });
 }
 
-// —— 5. 绑定关闭/返回 —— //
+// —— 绑定关闭/返回 —— //
 detailClose.addEventListener("click", () => hide(detailOverlay, detailModal));
 detailBack.addEventListener("click", backToPollList);
 detailOverlay.addEventListener("click", () => hide(detailOverlay, detailModal));
 
-// —— 6. 全局挂载（方便 Card 点击回调） —— //
+// —— 全局挂载（方便 Card 点击回调） —— //
 window.openPollDetail = openPollDetail;
 
 function renderPollBroadcastCard(data) {
   const msgDiv = document.createElement("div");
   msgDiv.setAttribute("data-poll-id", data.poll_id);
   msgDiv.className = "poll-broadcast-card";
-
 
   const title = document.createElement("div");
   title.innerHTML = `🗳️ <strong style="color:#1e3a8a;">${data.creator}</strong> 发起了投票<strong>${data.message}</strong>`;
@@ -902,11 +906,11 @@ function renderPollBroadcastCard(data) {
   button.onclick = () => openPollDetail(data.poll_id);
   msgDiv.appendChild(button);
 
-  return msgDiv; 
+  return msgDiv;
 }
 
 function renderPollDetail(data) {
-  detailOptsUl.innerHTML = ""; 
+  detailOptsUl.innerHTML = "";
 
   try {
     if (data.error) {
