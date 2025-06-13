@@ -17,3 +17,6 @@ instance/
 
 # 一键更新部署脚本
 deploy-server.sh 
+
+# win平台开发测试一键启动脚本
+start.bat

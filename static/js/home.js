@@ -43,7 +43,7 @@ function getIdentityStyle(role, isSelf = false) {
     const badgeMap = {
       super_admin: "👑",
       admin: "🎯",
-      guest: "👀",
+      guest: "👤",
     };
     const badge = badgeMap[role] || "";
     return { color: "#10b981", badge };
@@ -53,7 +53,7 @@ function getIdentityStyle(role, isSelf = false) {
   if (role === "system") return { color: "purple", badge: "🪄" };
   if (role === "super_admin") return { color: "red", badge: "👑" };
   if (role === "admin") return { color: "orange", badge: "🎯" };
-  if (role === "guest") return { color: "gray", badge: "👀" };
+  if (role === "guest") return { color: "gray", badge: "👤" };
 
   return { color: "#3b82f6", badge: "" }; // 默认普通用户
 }
@@ -81,7 +81,6 @@ function initSocket() {
 
   // 处理连接逻辑
   socket.on("connect", () => {
-    console.log("已连接到服务器");
     // 向后端绑定用户名和角色
     socket.emit("bind_username", {
       username: window.username,
@@ -104,7 +103,10 @@ function initSocket() {
   });
 
   socket.on("receive_message", (data) => {
-    console.log("📥 收到 socket 消息:", data);
+    if (data.role === "poll_broadcast") {
+      renderPollBroadcastCard(data);
+      return;
+    }
 
     if (thinkingMsgElement && data.role === "system") {
       thinkingMsgElement.remove(); // 删除“思考中”原始块
@@ -207,6 +209,11 @@ function appendMessage(data, prepend = false) {
 
   const msgDiv = document.createElement("div");
 
+  if (data.role === "poll_broadcast") {
+    renderPollBroadcastCard(data);
+    return;
+  }
+
   // 若是查询时间的指令就自动计算UTC加上本地时区
   if (
     data.message.startsWith("🕐") &&
@@ -285,7 +292,7 @@ function appendMessage(data, prepend = false) {
     }
 
     msgDiv.style.background = "#e0f2fe"; // 更明显的浅蓝背景
-    msgDiv.style.borderRadius = "4px";
+    msgDiv.style.borderRadius = "6px";
     msgDiv.style.padding = "10px 0px";
     msgDiv.style.margin = "4px 0";
     msgDiv.style.fontStyle = "normal"; // 不用斜体了
@@ -497,15 +504,36 @@ window.addEventListener("DOMContentLoaded", () => {
   const role = window.userRole;
   const nameEl = document.getElementById("display-username");
   renderIdentity(nameEl, role); // 用统一函数处理身份徽章和颜色
-  // 游客禁止发言逻辑
+  // 游客禁止发言 + 禁用功能逻辑
   if (role === "guest") {
     const input = document.getElementById("message");
-    const button = document.querySelector("#chat-input button");
+    const button = document.querySelector("#chat-input-send-btn");
 
+    // 🔒 1. 禁止输入和发送
     input.disabled = true;
     input.placeholder = "游客无法发送消息";
     button.textContent = "注册";
     button.onclick = () => (window.location.href = "/");
+
+    // 🔒 2. 禁用工具栏按钮
+    const toolButtons = document.querySelectorAll("#tool-bar button");
+    toolButtons.forEach((btn) => {
+      btn.disabled = true;
+      btn.style.opacity = "0.5";
+      btn.style.cursor = "not-allowed";
+      btn.title = "请先登录使用此功能";
+    });
+
+    // 🔒 3. 禁用所有“查看详情”按钮
+    document.addEventListener("click", (e) => {
+      if (e.target.matches(".poll-broadcast-card button")) {
+        e.preventDefault();
+        showAlert("请先注册并登录后查看详情", "error");
+      }
+    });
+
+    // 🔔 4. 顶部提示（可选）
+    showAlert("👤 当前为游客身份，部分功能已锁定", "info");
   }
 });
 
@@ -626,13 +654,12 @@ const pollCreateRemoveBtn = document.getElementById(
 const pollCreateSubmitBtn = document.getElementById("poll-create-submit");
 const pollCreateInput = document.getElementById("poll-create-question");
 
-// —— 1. 引用 DOM —— //
 const detailOverlay = document.getElementById("poll-detail-overlay");
 const detailModal = document.getElementById("poll-detail-modal");
 const detailClose = detailModal.querySelector(".close");
 const detailBack = detailModal.querySelector(".back");
-const detailStatus = detailModal.querySelector("#poll-list-card-status");
-const detailQ = detailModal.querySelector("h3");
+const detailTitle = document.getElementById("poll-detail-title");
+const detailStatus = document.getElementById("poll-detail-card-status");
 const detailOptsUl = detailModal.querySelector(".poll-detail-options");
 
 // 假设给工具栏投票按钮加了个 id="tool-poll-btn"
@@ -667,6 +694,7 @@ function backToPollList() {
   hide(createOverlay, createModal);
   hide(detailOverlay, detailModal);
   show(listOverlay, listModal);
+  loadPollList();
 }
 // —— 4. 事件绑定 —— //
 // 4.1 工具栏“投票”按钮 → 打开列表
@@ -725,7 +753,8 @@ function renderPollList(polls) {
 
     const title = document.createElement("div");
     title.className = "poll-list-card-title";
-    title.textContent = poll.question;
+    title.textContent = poll.message;
+    ``;
 
     const meta = document.createElement("div");
     meta.className = "poll-list-card-meta";
@@ -735,7 +764,7 @@ function renderPollList(polls) {
     author.innerHTML = `由 <span style="color:#3b82f6; font-weight:bold;">${poll.creator}</span> 发起`;
 
     const status = document.createElement("span");
-    status.className = "poll-list-card-status";
+    status.className = "poll-detail-card-status";
 
     // 状态判断
     let label = "";
@@ -763,22 +792,13 @@ function renderPollList(polls) {
 }
 
 // —— 刷新并渲染投票列表 —— //
-async function loadPollList() {
-  try {
-    const res = await fetch("/api/polls", { method: "GET" });
-    const data = await res.json();
-    renderPollList(data); // 你之前写好的列表渲染函数
-  } catch (err) {
-    console.log("fetch /api/polls →", res.status, res.statusText);
-    const data = await res.json();
-    console.log("list data →", data);
-    console.error(err);
-    showAlert("刷新投票列表失败", "error");
-  }
+function loadPollList() {
+  socket.emit("list_polls");
+  socket.on("poll_list_result", renderPollList);
 }
 
 // —— 提交新投票 —— //
-async function handlePollCreateSubmit() {
+function handlePollCreateSubmit() {
   const question = pollCreateInput.value.trim();
   const options = Array.from(pollCreateOptionList.querySelectorAll("input"))
     .map((i) => i.value.trim())
@@ -795,25 +815,23 @@ async function handlePollCreateSubmit() {
     return showAlert("最多 6 个选项", "error");
   }
 
-  // 发送请求
-  try {
-    pollCreateSubmitBtn.disabled = true;
-    const res = await fetch("/api/polls", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, options }),
-    });
-    const js = await res.json();
-    if (!res.ok) {
-      return showAlert(js.error || "创建投票失败", "error");
-    }
+  pollCreateSubmitBtn.disabled = true;
 
+  // 发送 socket 创建投票
+  socket.emit("create_poll", {
+    username: window.username,
+    question,
+    options,
+  });
+
+  // 监听 socket 返回 poll_id 后的回调
+  socket.once("poll_created", ({ poll_id }) => {
     showAlert("创建成功！", "success");
 
     // 关闭创建浮窗，打开列表并刷新
     closePollCreate();
     openPollList();
-    await loadPollList();
+    loadPollList();
 
     // 清空表单
     pollCreateInput.value = "";
@@ -821,125 +839,45 @@ async function handlePollCreateSubmit() {
       .querySelectorAll(".poll-create-option-item")
       .forEach((div, i) => {
         div.querySelector("input").value = "";
-        // 如果多于两个选项，恢复到初始两项
         if (i >= 2) div.remove();
       });
-  } catch (err) {
-    console.error(err);
-    showAlert("网络错误，创建失败", "error");
-  } finally {
+
     pollCreateSubmitBtn.disabled = false;
-  }
+  });
 }
 
 // —— 事件绑定 —— //
 pollCreateSubmitBtn.addEventListener("click", handlePollCreateSubmit);
 
-// —— 3. 打开详情 —— //
-async function openPollDetail(pollId) {
-  try {
-    // 请求详情接口
-    const res = await fetch(`/api/polls/${pollId}`);
-    if (!res.ok) throw new Error("获取详情失败");
-    const data = await res.json();
-
-    // 设置标题
-    detailQ.childNodes[0].nodeValue = `🗳️ ${data.question}`;
-
-    // 设置状态文本和颜色
-    if (data.ended) {
-      detailStatus.textContent = "（已结束）";
-      detailStatus.style.color = "#888"; // 灰色
-    } else if (data.user_voted) {
-      detailStatus.textContent = "（你已投票）";
-      detailStatus.style.color = "#facc15"; // 黄色
-    } else {
-      detailStatus.textContent = "（进行中）";
-      detailStatus.style.color = "#22c55e"; // 绿色
-    }
-
-    // 清空旧列表
-    detailOptsUl.innerHTML = "";
-
-    // 渲染每个选项
-    data.options.forEach((opt) => {
-      const li = document.createElement("li");
-
-      const btn = document.createElement("button");
-      btn.className = "poll-detail-option-btn";
-
-      // 文本
-      const spanText = document.createElement("span");
-      spanText.className = "poll-detail-option-text";
-      spanText.textContent = opt.text;
-      btn.append(spanText);
-
-      const shouldShowResult = data.ended || data.user_voted; // 判断是否可以渲染结果（已投过或者已结束）
-
-      // 进度条
-      const bar = document.createElement("div");
-      bar.className = "progress-bar";
-      // 结束后显示，否则隐藏
-
-      bar.style.display = shouldShowResult ? "block" : "none";
-      const fill = document.createElement("div");
-      fill.className = "progress-fill";
-      // 计算百分比
-      const pct = data.total_votes
-        ? Math.round((opt.votes / data.total_votes) * 100) + "%"
-        : "0%";
-      fill.style.width = pct;
-      bar.append(fill);
-      btn.append(bar);
-
-      // 票数
-      const count = document.createElement("span");
-      count.className = "vote-count";
-      count.textContent = `${opt.votes} 票`;
-      count.style.display = shouldShowResult ? "inline" : "none";
-      btn.append(count);
-
-      // 点击投票（进行中才绑定）
-      if (!data.ended) {
-        btn.addEventListener("click", () => votePoll(pollId, opt.option_id));
-      }
-
-      li.append(btn);
-      detailOptsUl.append(li);
-    });
-
-    // 显示浮窗
-    show(detailOverlay, detailModal);
-    hide(listOverlay, listModal);
-    hide(createOverlay, createModal);
-  } catch (err) {
-    console.error(err);
-    showAlert("加载投票详情失败", "error");
-  }
+function openPollDetail(pollId) {
+  socket.off("poll_detail_result");
+  socket.emit("get_poll_detail", { poll_id: pollId });
+  socket.once("poll_detail_result", (data) => {
+    renderPollDetail(data);
+  });
 }
 
 // —— 4. 投票 —— //
-async function votePoll(pollId, optionId) {
-  try {
-    const res = await fetch(`/api/polls/${pollId}/vote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ option_id: optionId }),
-    });
-    const js = await res.json();
-    if (!res.ok) throw new Error(js.error || "投票失败");
+function votePoll(pollId, optionId) {
+  if (!pollId || !optionId) return;
 
-    showAlert("投票成功！", "success");
+  socket.emit("vote_poll", { poll_id: pollId, option_id: optionId });
 
-    // ✅ 此处 js.user_voted 为 true，可用于前端缓存判断（如果你有用）
+  socket.once("poll_vote_result", (res) => {
+    if (res.success) {
+      showAlert("投票成功！", "success");
 
-    // 刷新详情和列表，确保立即显示票数
-    await openPollDetail(pollId);
-    await loadPollList();
-  } catch (err) {
-    console.error(err);
-    showAlert(err.message || "投票出错", "error");
-  }
+      //  立即刷新详情页
+      refreshPollDetail(pollId);
+
+      //  立即刷新列表页
+      socket.off("poll_list_result");
+      socket.emit("list_polls");
+      socket.once("poll_list_result", renderPollList);
+    } else {
+      showAlert(res.error || "投票失败", "error");
+    }
+  });
 }
 
 // —— 5. 绑定关闭/返回 —— //
@@ -949,3 +887,128 @@ detailOverlay.addEventListener("click", () => hide(detailOverlay, detailModal));
 
 // —— 6. 全局挂载（方便 Card 点击回调） —— //
 window.openPollDetail = openPollDetail;
+
+function renderPollBroadcastCard(data) {
+  const msgDiv = document.createElement("div");
+
+  msgDiv.setAttribute("data-poll-id", data.poll_id);
+
+  msgDiv.className = "poll-broadcast-card";
+  msgDiv.style.background = "#e0f2fe";
+  msgDiv.style.borderLeft = "3px solid #3b82f6";
+  msgDiv.style.padding = "12px";
+  msgDiv.style.margin = "10px 0";
+  msgDiv.style.borderRadius = "8px";
+  msgDiv.style.fontSize = "15px";
+
+  const title = document.createElement("div");
+  title.innerHTML = `🗳️ <strong style="color:#1e3a8a;">${data.creator}</strong> 发起了投票：<strong>${data.message}</strong>`;
+  console.log("投票内容 message 是：", data.message);
+  msgDiv.appendChild(title);
+
+  const button = document.createElement("button");
+  button.textContent = "查看详情";
+  button.style.marginTop = "8px";
+  button.style.padding = "6px 10px";
+  button.style.borderRadius = "6px";
+  button.style.border = "1px #3b82f6";
+  button.style.background = "#3b82f6";
+  button.style.color = "#fff";
+  button.style.cursor = "pointer";
+  button.onclick = () => openPollDetail(data.poll_id);
+
+  msgDiv.appendChild(button);
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function renderPollDetail(data) {
+  detailOptsUl.innerHTML = ""; //  先清空
+
+  try {
+    if (data.error) {
+      showAlert(data.error, "error");
+      return;
+    }
+
+    // 设置标题
+    detailTitle.textContent = `🗳️ ${data.message}`;
+
+    // 设置状态文本和颜色
+    if (data.ended) {
+      detailStatus.textContent = "（已结束）";
+      detailStatus.style.color = "#888";
+    } else if (data.user_voted) {
+      detailStatus.textContent = "（你已投票）";
+      detailStatus.style.color = "#facc15";
+    } else {
+      detailStatus.textContent = "（进行中）";
+      detailStatus.style.color = "#22c55e";
+    }
+
+    // 清空旧选项
+    detailOptsUl.innerHTML = "";
+
+    data.options.forEach((opt) => {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.className = "poll-detail-option-btn";
+
+      const spanText = document.createElement("span");
+      spanText.className = "poll-detail-option-text";
+      spanText.textContent = opt.text;
+      btn.append(spanText);
+
+      const shouldShowResult = data.ended || data.user_voted;
+
+      const bar = document.createElement("div");
+      bar.className = "progress-bar";
+      bar.style.display = shouldShowResult ? "block" : "none";
+
+      const fill = document.createElement("div");
+      fill.className = "progress-fill";
+      const pct = data.total_votes
+        ? Math.round((opt.votes / data.total_votes) * 100) + "%"
+        : "0%";
+      fill.style.width = pct;
+      bar.append(fill);
+      btn.append(bar);
+
+      const count = document.createElement("span");
+      count.className = "vote-count";
+      count.textContent = `${opt.votes} 票`;
+      count.style.display = shouldShowResult ? "inline" : "none";
+      btn.append(count);
+
+      if (!data.ended) {
+        btn.addEventListener("click", () =>
+          votePoll(data.poll_id, opt.option_id)
+        );
+      }
+
+      li.append(btn);
+      detailOptsUl.append(li);
+    });
+
+    show(detailOverlay, detailModal);
+    hide(listOverlay, listModal);
+    hide(createOverlay, createModal);
+  } catch (err) {
+    console.error(err);
+    showAlert("加载投票详情失败", "error");
+  }
+}
+
+function refreshPollDetail(pollId) {
+  socket.off("poll_detail_result"); // 清理监听
+  socket.emit("get_poll_detail", { poll_id: pollId });
+
+  socket.once("poll_detail_result", (data) => {
+    if (data.error) {
+      showAlert(data.error, "error");
+      return;
+    }
+
+    renderPollDetail(data); //  正确传入完整 poll 数据对象
+  });
+}

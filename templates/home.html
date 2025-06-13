@@ -113,7 +113,10 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         </svg>
       </button>
       <button class="close" aria-label="关闭">×</button>
-      <h3><small id="poll-list-card-status"></small></h3>
+      <h3>
+        <span id="poll-detail-title"></span>
+        <small id="poll-detail-card-status"></small>
+      </h3>
       <ul class="poll-detail-options">
         <!-- 假设三个选项，后端渲染渲染数量可变 -->
         <li>
@@ -125,11 +128,6 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
             <span class="vote-count" style="display:none;"></span>
           </button>
         </li>
-  
- 
-
-
- 
       </ul>
     </div>
 
@@ -138,18 +136,18 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
 
     <!-- 创建投票浮窗 -->
     <div id="poll-create-modal" class="modal">
-      <h3>🗳️ 发起投票</h3>
+      <h3>🗳️ 发起投票 (有效期三天)</h3>
 
       <label for="poll-create-question">投票标题：</label>
-      <input id="poll-create-question" type="text" maxlength="15" placeholder="请输入问题" />
+      <input id="poll-create-question" style="margin-top: 8px;" type="text" maxlength="15" placeholder="请输入问题" />
 
-      <label>选项（每项最多8字）：</label>
+      <label style="margin-bottom: 5px;">选项（每项最多8字）：</label>
       <div id="poll-create-option-list">
         <div class="poll-create-option-item">
-          <input type="text" maxlength="8" style="margin-top: 10px;" placeholder="选项1" />
+          <input type="text" maxlength="8"  placeholder="选项1" />
         </div>
         <div class="poll-create-option-item">
-          <input type="text" maxlength="8" style="margin-top: -5px;" placeholder="选项2" />
+          <input type="text" maxlength="8" " placeholder="选项2" />
         </div>
       </div>
 
@@ -202,7 +200,7 @@ width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.3); z-index: 998;">
         </div>
       </div>
       <input type="text" id="message" placeholder="输入消息..." />
-      <button class="send-btn" onclick="sendMessage()">发送</button>
+      <button id="chat-input-send-btn" class="send-btn" onclick="sendMessage()">发送</button>
     </div>
 
 

@@ -450,7 +450,7 @@ h1 {
 
 #poll-create-modal input[type="text"] {
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   padding: 8px 10px;
   font-size: 14px;
   border: 1.5px solid #ccc;
@@ -687,5 +687,5 @@ h1 {
 }
 
 #poll-create-modal {
-  display: none;
+  display: flex;
 }
