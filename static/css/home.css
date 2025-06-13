@@ -689,3 +689,38 @@ h1 {
 #poll-create-modal {
   display: none;
 }
+
+
+
+/* 投票广播卡片样式 */
+.poll-broadcast-card {
+  background: #e0f2fe;
+  border-left: 3px solid #3b82f6;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  font-size: 15px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* 卡片中的标题文字 */
+.poll-broadcast-card strong {
+  color: #1e3a8a;
+}
+
+/* 投票卡片中的按钮样式 */
+.poll-broadcast-card button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #3b82f6;
+  background: #3b82f6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.poll-broadcast-card button:hover {
+  background: #2563eb;
+}

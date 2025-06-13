@@ -32,7 +32,9 @@ def register_chat_events(socketio):
     @socketio.on("connect")
     def handle_connect():
         print(f"Socket 连接建立: {request.sid}")
-        messages = Message.query.order_by(Message.timestamp.asc()).limit(50).all()  #  升序
+        messages = (
+            Message.query.order_by(Message.timestamp.asc()).limit(50).all()
+        )  #  升序
 
         history = []
         for m in messages:
@@ -201,7 +203,7 @@ def register_chat_events(socketio):
         if not message:
             return
 
-            # ===== AI指令特殊处理 =====
+        # ===== AI指令特殊处理 =====
         if message.startswith("/ask"):
             # 保存并广播用户原始指令
             msg_obj = Message(username=username, message=message, role=role)
@@ -249,7 +251,12 @@ def register_chat_events(socketio):
             return
 
         # ===== 普通消息处理 =====
-        msg_obj = Message(username=username, message=message, role=role)
+        msg_obj = Message(
+            username=username,
+            message=message,
+            role=role,
+            timestamp=datetime.now(timezone.utc),  #  每次生成新的时间戳
+        )
         db.session.add(msg_obj)
         db.session.commit()
         emit(

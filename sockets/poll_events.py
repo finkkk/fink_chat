@@ -1,16 +1,16 @@
 # sockets/poll_events.py
 from models import Poll, Option, Message, db, User, Vote
 from config import SYSTEM_USERNAME
-from datetime import datetime, timezone
 from flask_socketio import emit
 from flask import request
 from session_state import user_sid_map
 import json
-
+from datetime import datetime,timezone
 
 def register_poll_events(socketio):
     @socketio.on("create_poll")
     def handle_create_poll_socket(data):
+        now = datetime.now(timezone.utc)  #  创建时间固定
         username = data.get("username")
         question = (data.get("question") or "").strip()
         if not question:
@@ -22,14 +22,17 @@ def register_poll_events(socketio):
             return
 
         # 创建投票和选项
-        poll = Poll(question=question, creator=username)
+        poll = Poll(question=question, creator=username,created_at=now)
         db.session.add(poll)
         db.session.flush()
         for txt in options:
             db.session.add(Option(poll_id=poll.id, text=txt))
         db.session.commit()
 
-        now = datetime.now(timezone.utc)
+
+
+        
+
 
         #  广播系统消息（附带 poll_id）
         socketio.emit(
@@ -40,7 +43,7 @@ def register_poll_events(socketio):
                 "creator": username,
                 "message": question,
                 "poll_id": poll.id,
-                "timestamp": now.isoformat(),
+                "timestamp": now.isoformat()
             },
         )
 
@@ -56,7 +59,7 @@ def register_poll_events(socketio):
                     }
                 ),
                 role="poll_broadcast",
-                timestamp=now,
+                timestamp=now   
             )
         )
         db.session.commit()

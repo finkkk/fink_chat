@@ -103,10 +103,7 @@ function initSocket() {
   });
 
   socket.on("receive_message", (data) => {
-    if (data.role === "poll_broadcast") {
-      renderPollBroadcastCard(data,false);
-      return;
-    }
+
 
     if (thinkingMsgElement && data.role === "system") {
       thinkingMsgElement.remove(); // 删除“思考中”原始块
@@ -210,7 +207,8 @@ function appendMessage(data, prepend = false) {
   const msgDiv = document.createElement("div");
 
   if (data.role === "poll_broadcast") {
-    renderPollBroadcastCard(data,prepend);
+    const msgDiv = renderPollBroadcastCard(data);
+    insertMessage(msgDiv, prepend); //  修复位置错误
     return;
   }
 
@@ -889,46 +887,26 @@ detailOverlay.addEventListener("click", () => hide(detailOverlay, detailModal));
 // —— 6. 全局挂载（方便 Card 点击回调） —— //
 window.openPollDetail = openPollDetail;
 
-function renderPollBroadcastCard(data, prepend = false) {
+function renderPollBroadcastCard(data) {
   const msgDiv = document.createElement("div");
-
   msgDiv.setAttribute("data-poll-id", data.poll_id);
-
   msgDiv.className = "poll-broadcast-card";
-  msgDiv.style.background = "#e0f2fe";
-  msgDiv.style.borderLeft = "3px solid #3b82f6";
-  msgDiv.style.padding = "12px";
-  msgDiv.style.margin = "10px 0";
-  msgDiv.style.borderRadius = "8px";
-  msgDiv.style.fontSize = "15px";
+
 
   const title = document.createElement("div");
-  title.innerHTML = `🗳️ <strong style="color:#1e3a8a;">${data.creator}</strong> 发起了投票：<strong>${data.message}</strong>`;
-  console.log("投票内容 message 是：", data.message);
+  title.innerHTML = `🗳️ <strong style="color:#1e3a8a;">${data.creator}</strong> 发起了投票<strong>${data.message}</strong>`;
   msgDiv.appendChild(title);
 
   const button = document.createElement("button");
   button.textContent = "查看详情";
-  button.style.marginTop = "8px";
-  button.style.padding = "6px 10px";
-  button.style.borderRadius = "6px";
-  button.style.border = "1px #3b82f6";
-  button.style.background = "#3b82f6";
-  button.style.color = "#fff";
-  button.style.cursor = "pointer";
   button.onclick = () => openPollDetail(data.poll_id);
-
   msgDiv.appendChild(button);
-  if (prepend) {
-    chatBox.insertBefore(msgDiv, chatBox.firstChild);
-  } else {
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
+
+  return msgDiv; 
 }
 
 function renderPollDetail(data) {
-  detailOptsUl.innerHTML = ""; //  先清空
+  detailOptsUl.innerHTML = ""; 
 
   try {
     if (data.error) {
@@ -1016,4 +994,13 @@ function refreshPollDetail(pollId) {
 
     renderPollDetail(data); //  正确传入完整 poll 数据对象
   });
+}
+
+function insertMessage(msgDiv, prepend = false) {
+  if (prepend) {
+    chatBox.insertBefore(msgDiv, chatBox.firstChild);
+  } else {
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
 }
