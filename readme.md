@@ -12,9 +12,9 @@
   <img src="https://img.shields.io/github/v/release/finkkk/fink_chat?label=release&style=flat-square&cacheSeconds=60">
 </p>
 
-# Flask 聊天网站项目
+# Fink Chat 聊天系统
 
-这是一个基于 Flask + Flask-SocketIO 构建的简易实时聊天网站，支持用户注册、登录、保持会话状态以及多人聊天功能。前后端通过 WebSocket 实现实时通信，使用 SQLite 存储用户和消息数据。
+基于 Flask + Socket.IO 的轻量级实时聊天室，支持用户系统、投票模块、自定义指令、游客模式等完整功能。
 
 ---
 
