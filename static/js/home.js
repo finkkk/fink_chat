@@ -18,11 +18,12 @@ document.getElementById("display-username").textContent = username;
 const chatBox = document.getElementById("chat-box");
 const messageInput = document.getElementById("message");
 const loadMoreBtn = document.getElementById("load-more");
-let messageOffset = 0; // 当前历史消息加载偏移量
 const limitPerLoad = 10; // 每次最多加载多少条历史记录
 let validCommands = new Set(); // 可用指令合集
 
 let thinkingMsgElement = null; // 保存正在思考的消息 DOM
+
+let earliestTimestamp = null;
 
 // 渲染身份组样式(包括字体颜色和徽章添加)
 function renderIdentity(el, role, isSelf = false) {
@@ -79,7 +80,7 @@ function insertThinkingMessage() {
 function initSocket() {
   socket = io({ withCredentials: true });
 
-  // 处理连接逻辑
+  // --- 用户绑定 ---
   socket.on("connect", () => {
     // 向后端绑定用户名和角色
     socket.emit("bind_username", {
@@ -88,33 +89,12 @@ function initSocket() {
     });
   });
 
-  // 接收历史消息（首次或点击“加载更多”）
-  socket.on("chat_history", (messages) => {
-    if (!messages || messages.length === 0) {
-      loadMoreBtn.disabled = true;
-      loadMoreBtn.textContent = "没有更多消息";
-      return;
-    }
-
-    messages.reverse().forEach((msg) => {
-      
-      appendMessage(msg, true); //  统一处理
-    });
-
-    messageOffset += messages.length;
-
-    // 首次加载滚动到底部
-    if (messageOffset === messages.length) {
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  });
-
+  // --- 接收新消息 ---
   socket.on("receive_message", (data) => {
     if (thinkingMsgElement && data.role === "system") {
-      thinkingMsgElement.remove(); // 删除“思考中”原始块
+      thinkingMsgElement.remove(); // 删除“思考中”的占位块
       thinkingMsgElement = null;
-
-      appendMessage(data); // 用真实消息重新渲染，走完整样式逻辑
+      appendMessage(data); // 用真正内容重新渲染
       return;
     }
 
@@ -122,7 +102,28 @@ function initSocket() {
     playMentionSound(data);
   });
 
-  // 更新显示在线用户列表人数
+  // --- 接收历史消息 ---
+  socket.on("chat_history", (messages) => {
+    if (!messages || messages.length === 0) {
+      loadMoreBtn.disabled = true;
+      loadMoreBtn.textContent = "没有更多消息";
+      return;
+    }
+
+    const isFirstLoad = earliestTimestamp === null;
+
+    const toRender = messages.slice().reverse();
+    toRender.forEach((msg) => appendMessage(msg, true));
+
+    // 保存“当前最早”的消息时间戳
+    earliestTimestamp = messages[0].timestamp;
+
+    if (isFirstLoad) {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  });
+
+  // --- 在线用户更新 ---
   socket.on("online_users", (userList) => {
     const filtered = userList;
 
@@ -413,8 +414,10 @@ function logout() {
 
 // 加载更多历史记录
 function loadMore() {
+  if (!earliestTimestamp) return;
+
   socket.emit("load_more_history", {
-    offset: messageOffset,
+    before: earliestTimestamp,
     limit: limitPerLoad,
   });
 }
