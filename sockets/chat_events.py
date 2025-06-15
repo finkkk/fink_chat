@@ -30,7 +30,7 @@ def register_chat_events(socketio):
     @socketio.on("connect")
     def handle_connect():
         print(f"Socket 连接建立: {request.sid}")
-        messages = Message.query.order_by(Message.timestamp.desc()).limit(5).all()
+        messages = Message.query.order_by(Message.timestamp.desc()).limit(30).all()
         messages.reverse()
         history = [build_message_payload(m, request.sid) for m in messages]
         socketio.emit("chat_history", history, room=request.sid)
